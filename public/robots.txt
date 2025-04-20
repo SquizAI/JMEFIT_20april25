@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /checkout
+Disallow: /dashboard
+Disallow: /auth
+Allow: /
+
+Sitemap: https://jmefit.com/sitemap.xml

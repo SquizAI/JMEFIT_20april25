@@ -1,0 +1,16 @@
+# SPA fallback
+/* /index.html 200
+
+# Netlify Functions are handled automatically by Netlify
+
+# Ensure images are properly served with correct CORS headers
+/images/* /images/:splat 200
+/icons/* /icons/:splat 200
+/app_photos/* /app_photos/:splat 200
+/*.png /:splat 200
+/*.jpg /:splat 200
+/*.jpeg /:splat 200
+/*.svg /:splat 200
+/*.gif /:splat 200
+/*.webp /:splat 200
+/*.PNG /:splat 200

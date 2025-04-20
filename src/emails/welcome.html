@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to JMEFit</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+    }
+    .content {
+      padding: 20px 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(to right, #8b5cf6, #7c3aed);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #888;
+      font-size: 12px;
+    }
+    .social-links {
+      margin: 15px 0;
+    }
+    .social-links a {
+      display: inline-block;
+      margin: 0 10px;
+      color: #8b5cf6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="JMEFit Logo" class="logo">
+      <h1>Welcome to JMEFit!</h1>
+    </div>
+    
+    <div class="content">
+      <p>Hello {{fullName}},</p>
+      
+      <p>Thank you for joining JMEFit! We're excited to have you as part of our fitness community.</p>
+      
+      <p>With your new account, you can:</p>
+      <ul>
+        <li>Access personalized workout plans</li>
+        <li>Track your fitness progress</li>
+        <li>Connect with other fitness enthusiasts</li>
+        <li>Shop for premium JMEFit merchandise</li>
+      </ul>
+      
+      <p>Ready to start your fitness journey?</p>
+      
+      <div style="text-align: center;">
+        <a href="{{dashboardUrl}}" class="button">Go to My Dashboard</a>
+      </div>
+      
+      <p>If you have any questions or need assistance, don't hesitate to contact our support team at <a href="mailto:support@jmefit.com">support@jmefit.com</a>.</p>
+      
+      <p>Stay fit and healthy!</p>
+      
+      <p>The JMEFit Team</p>
+    </div>
+    
+    <div class="footer">
+      <div class="social-links">
+        <a href="https://instagram.com/jmefit">Instagram</a>
+        <a href="https://twitter.com/jmefit">Twitter</a>
+        <a href="https://facebook.com/jmefit">Facebook</a>
+      </div>
+      <p>&copy; 2023 JMEFit. All rights reserved.</p>
+      <p>123 Fitness Street, Workout City, WO 12345</p>
+      <p>
+        <a href="{{unsubscribeUrl}}">Unsubscribe</a> |
+        <a href="{{privacyUrl}}">Privacy Policy</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

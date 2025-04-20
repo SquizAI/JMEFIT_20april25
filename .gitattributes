@@ -1,0 +1,3 @@
+scripts/setup-shop-products.js filter=git-crypt diff=git-crypt
+scripts/stripe-direct-test.sh filter=git-crypt diff=git-crypt
+scripts/update-stripe-keys.sh filter=git-crypt diff=git-crypt

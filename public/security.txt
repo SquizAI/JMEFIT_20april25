@@ -1,0 +1,7 @@
+# Security Policy
+Contact: security@jmefit.com
+Expires: 2025-12-31T23:59:59.000Z
+Encryption: https://jmefit.com/pgp-key.txt
+Preferred-Languages: en
+Canonical: https://jmefit.com/.well-known/security.txt
+Policy: https://jmefit.com/security-policy

@@ -1,0 +1,369 @@
+/* Tailwind Directives */
+/* These are valid CSS directives used by Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Enhanced animations and transitions */
+
+/* Add a subtle animation on scroll */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Unified program cards styling */
+  .program-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid rgba(229, 231, 235, 0.5);
+    min-height: 650px;
+  }
+  
+  .program-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  .program-card-header {
+    padding: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    padding-top: 2rem;
+    padding-bottom: 1.5rem;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .program-card-body {
+    padding: 1.5rem 2rem;
+    background: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .program-card-features {
+    margin-bottom: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+  
+  .program-card-features li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+    line-height: 1.5;
+  }
+  
+  .program-card-features li svg {
+    margin-right: 1rem;
+    flex-shrink: 0;
+    color: #06b6d4;
+  }
+  
+  .program-card-button-container {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    bottom: 0;
+  }
+  
+  /* Button hover and active animations */
+  .btn-hover-effect {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-hover-effect:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+    z-index: -1;
+  }
+  
+  .btn-hover-effect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-hover-effect:hover:before {
+    width: 300%;
+    height: 300%;
+  }
+  
+  .btn-hover-effect:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition-duration: 0.15s;
+  }
+  
+  /* Enhanced interactive program buttons */
+  .program-button {
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.25s ease;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  .program-button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: skewX(-15deg);
+    transition: all 0.5s ease;
+    z-index: -1;
+  }
+  
+  .program-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .program-button:hover:before {
+    left: 100%;
+  }
+  
+  .program-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition-duration: 0.15s;
+  }
+  
+  /* Additional button styles handled by main program-button:hover above */
+  
+  /* Pricing toggle styles */
+  .pricing-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+    display: inline-flex;
+    margin-bottom: 1.5rem;
+  }
+  
+  .pricing-toggle button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .pricing-toggle button.active {
+    background: white;
+    color: #333;
+  }
+  
+  /* Pricing display */
+  .price-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  
+  .price-period {
+    font-size: 0.875rem;
+    opacity: 0.8;
+  }
+  
+  /* Badge styles */
+  .best-value-badge {
+    background: linear-gradient(to right, #22c55e, #16a34a);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    border-radius: 1rem;
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+  }
+  
+  /* Link hover animations */
+  .link-hover-effect {
+    position: relative;
+  }
+  
+  .link-hover-effect:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: currentColor;
+    transition: width 0.3s ease;
+  }
+  
+  .link-hover-effect:hover:after {
+    width: 100%;
+  }
+  
+  /* Card hover effects */
+  .card-hover-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Hero Background Styles */
+.hero-background {
+  background-image: url('/JMEFIT_hero_mirrored.png');
+  background-position: 60% 10%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  transform: translateZ(0); /* Hardware acceleration */
+  will-change: transform; /* Optimize for animations */
+  perspective: 1000px; /* Add depth to parallax effect */
+}
+
+/* Mobile Hero Background */
+@media (max-width: 768px) {
+  .hero-background {
+    background-image: url('/JMEFIT_hero_mirrored.png');
+    background-position: 75% center;
+    background-attachment: scroll;
+    background-size: cover;
+    height: 100vh !important; /* Ensure full height on mobile */
+  }
+  
+  /* Improve mobile text visibility */
+  .hero-text-mobile {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Hide toast notifications on mobile */
+  .react-hot-toast-success {
+    display: none !important;
+  }
+}
+
+/* iPad in landscape mode */
+@media only screen 
+and (min-device-width: 768px) 
+and (max-device-width: 1024px) 
+and (orientation: landscape) {
+  .hero-background {
+    background-image: url('/JMEFIT_hero_mirrored.png');
+    background-position: center center;
+    background-attachment: scroll;
+    background-size: cover;
+    height: 100vh !important;
+    transform: translateZ(0); /* Hardware acceleration */
+  }
+  
+  .hero-text-mobile {
+    margin-top: -5vh;
+  }
+}
+
+/* iPad in portrait mode */
+@media only screen 
+and (min-device-width: 768px) 
+and (max-device-width: 1024px) 
+and (orientation: portrait) {
+  .hero-background {
+    background-image: url('/JMEFIT_hero_mirrored.png');
+    background-position: 65% center;
+    background-attachment: scroll;
+    background-size: cover;
+    height: 100vh !important;
+  }
+}
+
+/* Journey Banner Parallax Styles */
+.parallax-banner {
+  background-attachment: fixed;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transform: translateZ(0);
+  will-change: transform;
+  overflow: hidden;
+}
+
+/* Mobile Journey Banner */
+@media (max-width: 768px) {
+  .parallax-banner {
+    background-attachment: scroll;
+    background-position: center center;
+  }
+}
+
+/* Custom keyframe animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes floatUp {
+  from { transform: translateY(0); }
+  to { transform: translateY(-15px); }
+}
+
+/* Scroll-based animation classes */
+.scroll-fade-out {
+  opacity: 1;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.scroll-fade-out.active {
+  opacity: 0.3;
+  transform: translateY(-30px);
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JMEFit Promotional Video</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 1280px;
+      height: 0;
+      padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    }
+    video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-container">
+    <video controls autoplay loop muted playsinline poster="/JMEFIT_photo.png">
+      <!-- We'll use an image slideshow as a fallback since we can't generate a video without ffmpeg -->
+      <source src="#" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+  <script>
+    // Create a slideshow effect with images
+    const video = document.querySelector('video');
+    const images = [
+      '/JMEFIT_photo.png',
+      '/JMEFIT_hero_mirrored.png',
+      '/JME_fit_purple.png'
+    ];
+    let currentImage = 0;
+    
+    // Change the poster image every 3 seconds
+    setInterval(() => {
+      currentImage = (currentImage + 1) % images.length;
+      video.poster = images[currentImage];
+    }, 3000);
+  </script>
+</body>
+</html>

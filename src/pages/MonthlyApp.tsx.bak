@@ -1,0 +1,587 @@
+import { useEffect, useState } from 'react';
+import { Dumbbell, CheckCircle2, MessageSquare, Info, X } from 'lucide-react';
+import { useCartStore } from '../store/cart';
+import PricingToggle from '../components/PricingToggle';
+import toast from 'react-hot-toast';
+import { getSubscriptionPlans } from '../lib/api/subscriptions';
+
+// Add keyframe animation for modal entry
+const modalEntryStyles = `
+@keyframes modalEntry {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-modalEntry {
+  animation: modalEntry 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+`;
+
+// Add the styles to the document head
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = modalEntryStyles;
+  document.head.appendChild(styleElement);
+}
+
+const MonthlyApp = () => {
+  const { addItem } = useCartStore();
+  const [showSelfLedDetails, setShowSelfLedDetails] = useState(false);
+  const [showTrainerFeedbackDetails, setShowTrainerFeedbackDetails] = useState(false);
+  const [displayIntervals, setDisplayIntervals] = useState<{
+    selfLed: 'month' | 'year',
+    trainerFeedback: 'month' | 'year'
+  }>({
+    selfLed: 'year',
+    trainerFeedback: 'year'
+  });
+  
+  // State for database subscription plans
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
+
+  // Fetch subscription plans from database
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        // Fetch subscription plans
+        const plansData = await getSubscriptionPlans();
+        setSubscriptionPlans(plansData || []);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching subscription plans:', err);
+        setError('Failed to load subscription plans. Please try again later.');
+        toast.error('Failed to load subscription plans. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchData();
+  }, []);
+  
+  // Helper function to find subscription plans in the fetched data
+  const getSubscriptionPlan = (name: string) => {
+    return subscriptionPlans.find(p => 
+      p.name.toLowerCase().includes(name.toLowerCase())
+    );
+  };
+  
+  // Get price for a plan based on interval
+  const getSubscriptionPrice = (planName: string, interval: 'month' | 'year') => {
+    const plan = getSubscriptionPlan(planName);
+    if (!plan || !plan.prices || plan.prices.length === 0) {
+      // Fall back to hardcoded prices if plan not found
+      const basePrices: Record<string, number> = {
+        'self-led training': 19.99,
+        'trainer feedback': 34.99
+      };
+      
+      const basePrice = basePrices[planName.toLowerCase()] || 0;
+      // Calculate price based on billing interval
+      if (interval === 'year') {
+        return basePrice * 12 * 0.8; // 20% discount for annual subscription
+      } else {
+        return basePrice;
+      }
+    }
+    
+    // Get price from database
+    const price = plan.prices.find((p: any) => p.interval === interval);
+    return price ? price.price / 100 : 0;
+  };
+  
+  // Get Stripe price ID for checkout
+  const getStripePriceId = (planName: string, interval: 'month' | 'year') => {
+    const plan = getSubscriptionPlan(planName);
+    if (!plan || !plan.prices) return undefined;
+    
+    const price = plan.prices.find((p: any) => p.interval === interval);
+    return price?.stripe_price_id;
+  };
+
+  // Calculate yearly price with discount
+
+  const handleAddToCart = (program: { name: string; price: number; description: string }) => {
+    // Get the current interval for this program
+    const programKey = program.name === "Self-Led Training" ? "selfLed" : "trainerFeedback";
+    // Type assertion to ensure TypeScript knows this is a valid key
+    const interval = displayIntervals[programKey as keyof typeof displayIntervals];
+    
+    // Calculate the price based on the interval and get product data from database
+    const finalPrice = getSubscriptionPrice(program.name, interval);
+    const stripePriceId = getStripePriceId(program.name, interval);
+    const plan = getSubscriptionPlan(program.name);
+    
+    addItem({
+      id: plan?.id || program.name,
+      name: program.name,
+      price: finalPrice,
+      description: program.description,
+      billingInterval: interval,
+      stripe_price_id: stripePriceId
+    });
+    toast.success('Added to cart!');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pt-12">
+      {/* Loading state */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-jme-blue border-t-transparent rounded-full animate-spin" />
+          <span className="ml-2 text-lg mt-2">Loading subscription plans...</span>
+        </div>
+      )}
+      
+      {/* Error state */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded my-6 mx-auto max-w-4xl">
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 text-sm text-red-700 underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+      
+      {/* Only show content when not loading and no error */}
+      {!loading && !error && (
+        <div className="w-full">
+          {/* Trainer Feedback Details Modal */}
+          {showTrainerFeedbackDetails && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 overflow-y-auto backdrop-blur-sm transition-all duration-300"
+             onClick={(e) => {
+               // Close modal when clicking backdrop (outside modal)
+               if (e.target === e.currentTarget) setShowTrainerFeedbackDetails(false);
+             }}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative animate-modalEntry shadow-2xl"
+            style={{
+              animation: 'modalEntry 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            <button
+              onClick={() => setShowTrainerFeedbackDetails(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-jme-purple to-purple-900 rounded-xl">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">App Workouts Only</h2>
+              </div>
+              
+              <div className="mb-6 text-gray-700">
+                <p>
+                  JmeFit workout options are monthly and have no long-term commitments- cancel anytime! Choose gym or home-based training that is focused on your long-term goals. By breaking each week into a 3, 4 or 5 day split, you'll reach your goals that fit your lifestyle & have no stress in planning! You'll have access to my exercise library and app to record your workout (reps / sets / weights), track your progress, and more! Workouts change monthly with continued subscription and are custom for equipment access and all fitness levels!
+                </p>
+              </div>
+              
+              <div className="bg-purple-50 p-5 rounded-xl mb-6">
+                <div className="text-xl font-bold text-gray-800 mb-2">Trainer Feedback $34.99 <span className="text-base font-normal text-gray-600">(Month-to-Month)</span></div>
+              </div>
+              
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">Program Features</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Includes Everything from Self-Led</span> – Access to all features of the Self-Led membership.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Form Checks</span> – Submit workout videos for personalized feedback to ensure correct form and prevent injury.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Direct Access to Jaime</span> – Privately message Jaime anytime through the app for adjustments and advice.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Adaptable Workouts</span> – Swap exercises or add traveling programs based on your schedule or location, as well as rehabilitative plans as needed.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Full Workout Access</span> – Access to all previous workouts for as long as the membership is active.
+                    </div>
+                  </li>
+                </ul>
+                <div className="mt-6 bg-gray-100 p-4 rounded-lg text-gray-700">
+                  <p>This program works for any experience level and provides access to more hands-on coaching and guidance. Gym/home equipment can be swapped if not accessible.</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    // Get the current interval for this program
+                    const interval = displayIntervals.trainerFeedback;
+                    const description = interval === 'year' ? 
+                      "Trainer Feedback (Annual) - Personal guidance & form checks" :
+                      "Trainer Feedback (Monthly) - Personal guidance & form checks";
+                      
+                    // Get product data from database
+                    const plan = getSubscriptionPlan("Trainer Feedback");
+                    const finalPrice = getSubscriptionPrice("Trainer Feedback", interval);
+                    const stripePriceId = getStripePriceId("Trainer Feedback", interval);
+                    
+                    addItem({
+                      id: plan?.id || "trainer-feedback",
+                      name: "Trainer Feedback Program",
+                      price: finalPrice,
+                      billingInterval: interval,
+                      description: description,
+                      stripe_price_id: stripePriceId
+                    });
+                    setShowTrainerFeedbackDetails(false);
+                  }}
+                  className="bg-gradient-to-r from-jme-purple to-purple-700 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Start Trainer Feedback
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Self-Led Training Details Modal */}
+      {showSelfLedDetails && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 overflow-y-auto backdrop-blur-sm transition-all duration-300"
+             onClick={(e) => {
+               // Close modal when clicking backdrop (outside modal)
+               if (e.target === e.currentTarget) setShowSelfLedDetails(false);
+             }}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative animate-modalEntry shadow-2xl"
+            style={{
+              animation: 'modalEntry 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            <button
+              onClick={() => setShowSelfLedDetails(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-jme-cyan to-cyan-700 rounded-xl">
+                  <Dumbbell className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">App Workouts Only</h2>
+              </div>
+              
+              <div className="mb-6 text-gray-700">
+                <p>
+                  JmeFit workout options are monthly and have no long-term commitments- cancel anytime! Choose gym or home-based training that is focused on your long-term goals. By breaking each week into a 3, 4 or 5 day split, you'll reach your goals that fit your lifestyle & have no stress in planning! You'll have access to my exercise library and app to record your workout (reps / sets / weights), track your progress, and more! Workouts change monthly with continued subscription and are custom for equipment access and all fitness levels!
+                </p>
+              </div>
+              
+              <div className="bg-cyan-50 p-5 rounded-xl mb-6">
+                <div className="text-xl font-bold text-gray-800 mb-2">Self-Led $19.99 <span className="text-base font-normal text-gray-600">(Month-to-Month)</span></div>
+              </div>
+              
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">Program Features</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Access to "JMEFit" App</span> – Full access to Jaime Fit's app-based workouts.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">New Monthly Workouts</span> – Choose from 3, 4, or 5-day workout plans updated each month.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Structured Progressions</span> – Programmed progressions to ensure continuous improvement.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Video Guidance</span> – Each exercise is paired with instructional videos and setup/execution breakdown for correct form.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Detailed Prescriptions</span> – Includes prescribed sets, reps, RPE (Rate of Perceived EXERTION), and rest times for each exercise.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">Workout Logging</span> – Ability to record weights, reps, and notes each week directly within the app.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-medium">No Long-Term Commitment</span> – Month-to-month membership with the flexibility to cancel anytime.
+                    </div>
+                  </li>
+                </ul>
+                <div className="mt-6 bg-gray-100 p-4 rounded-lg text-gray-700">
+                  <p>This program works for any experience level, but has no coaching guidance. Dumbbells and/or bars, optional bands and/or TRX, stability and/or Bosu balls needed for home plans.</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    // Get the current interval for this program
+                    const interval = displayIntervals.selfLed;
+                    const description = interval === 'year' ? 
+                      "Annual Self-Led Training - Monthly workout plans & app access" :
+                      "Monthly Self-Led Training - Monthly workout plans & app access";
+                      
+                    // Get product data from database
+                    const plan = getSubscriptionPlan("Self-Led Training");
+                    const finalPrice = getSubscriptionPrice("Self-Led Training", interval);
+                    const stripePriceId = getStripePriceId("Self-Led Training", interval);
+                    
+                    addItem({
+                      id: plan?.id || "self-led-training",
+                      name: "Self-Led Training",
+                      price: finalPrice,
+                      billingInterval: interval,
+                      description: description,
+                      stripe_price_id: stripePriceId
+                    });
+                    setShowSelfLedDetails(false);
+                  }}
+                  className="bg-gradient-to-r from-jme-cyan to-cyan-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Start Self-Led Training
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Hero Section */}
+      <div className="relative h-[250px] mb-8 overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url("/unsplash-images/monthly-app-bg.jpg")'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50" />
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            Elevate Your Fitness Journey
+          </h1>
+          <p className="text-xl text-gray-200 max-w-3xl">
+            Choose the plan that fits your lifestyle and goals
+          </p>
+        </div>
+      </div>
+      
+      <div data-component-name="MonthlyApp" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="text-center mb-8">
+          <h2 className="text-5xl font-extrabold inline-block mb-6 bg-gradient-to-r from-jme-cyan via-purple-600 to-jme-purple bg-clip-text text-transparent drop-shadow-lg" style={{textShadow: 'rgba(100, 100, 255, 0.3) 0px 0px 5px'}}>Membership Options</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">Select the perfect plan to achieve your fitness goals with expert guidance and support</p>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+          {/* Self-Led Plan */}
+          <div className="program-card">
+            <div className="program-card-header bg-gradient-to-br from-jme-cyan to-cyan-700">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan-300/20 rounded-full -ml-12 -mb-12 blur-lg"></div>
+              <div className="flex items-center justify-center w-16 h-16 bg-cyan-400/30 rounded-2xl mb-6 backdrop-blur-sm shadow-lg relative z-10">
+                <Dumbbell className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 relative z-10 h-8 flex items-center">Self-Led Training</h3>
+              <p className="text-lg opacity-90 mb-5 relative z-10 h-16">Complete app access with monthly workout plans</p>
+              <button 
+                onClick={() => setShowSelfLedDetails(true)}
+                className="bg-white/20 text-white text-sm py-1.5 px-5 rounded-full flex items-center gap-1.5 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
+              >
+                <Info className="w-4 h-4" /> 
+                <span className="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white after:transition-all hover:after:w-full">More Info</span>
+              </button>
+              <PricingToggle
+                interval={displayIntervals.selfLed}
+                monthlyPrice={19.99}
+                onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, selfLed: newInterval }))}
+              />
+            </div>
+            <div className="program-card-body">
+              <ul className="program-card-features">
+                {[
+                  'Full access to JmeFit app',
+                  'New monthly workout plans (3-5 days)',
+                  'Structured progressions',
+                  'Exercise video library',
+                  'Detailed workout logging',
+                  'Cancel anytime'
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-jme-cyan flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="program-card-button-container">
+                <button
+                  onClick={() => {
+                    const interval = displayIntervals.selfLed;
+                    handleAddToCart({ 
+                      name: "Self-Led Training",
+                      price: getSubscriptionPrice("Self-Led Training", interval),
+                      description: interval === 'year' ? 
+                        "Annual Self-Led Training - Monthly workout plans & app access" : 
+                        "Monthly Self-Led Training - Monthly workout plans & app access"
+                    });
+                  }}
+                  className="program-button block w-full bg-gradient-to-r from-jme-cyan to-cyan-600 text-white"
+                >
+                  Start Self-Led Training
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Trainer Feedback Plan */}
+          <div className="program-card">
+            <div className="best-value-badge">Most Popular</div>
+            <div className="program-card-header bg-gradient-to-br from-jme-purple to-purple-900">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-300/20 rounded-full -ml-12 -mb-12 blur-lg"></div>
+              <div className="flex items-center justify-center w-16 h-16 bg-purple-400/30 rounded-2xl mb-6 backdrop-blur-sm shadow-lg relative z-10">
+                <MessageSquare className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 relative z-10 h-8 flex items-center">Trainer Feedback</h3>
+              <p className="text-lg opacity-90 mb-5 relative z-10 h-16">Personal guidance & form checks</p>
+              <button 
+                onClick={() => setShowTrainerFeedbackDetails(true)}
+                className="bg-white/20 text-white text-sm py-1.5 px-5 rounded-full flex items-center gap-1.5 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
+              >
+                <Info className="w-4 h-4" /> 
+                <span className="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white after:transition-all hover:after:w-full">More Info</span>
+              </button>
+              <PricingToggle
+                interval={displayIntervals.trainerFeedback}
+                monthlyPrice={34.99}
+                onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, trainerFeedback: newInterval }))}
+              />
+            </div>
+            <div className="program-card-body">
+              <ul className="program-card-features">
+                {[
+                  'Everything in Self-Led plan',
+                  'Form check video reviews',
+                  'Direct messaging with Jaime',
+                  'Workout adaptations & swaps',
+                  'Access to previous workouts',
+                  'Premium support access',
+                  'Cancel anytime'
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-jme-purple flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="program-card-button-container">
+                <button
+                  onClick={() => {
+                    const interval = displayIntervals.trainerFeedback;
+                    handleAddToCart({
+                      name: "Trainer Feedback",
+                      price: getSubscriptionPrice("Trainer Feedback", interval),
+                      description: interval === 'year' ? 
+                        "Annual Trainer Feedback Program - Premium training with personal guidance" :
+                        "Monthly Trainer Feedback Program - Premium training with personal guidance"
+                    });
+                  }}
+                  className="program-button block w-full bg-gradient-to-r from-jme-purple to-purple-700 text-white"
+                >
+                  Start With Trainer Feedback
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Testimonials Section */}
+        <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-jme-cyan/10 to-jme-purple/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold text-center mb-8">What Our Members Say</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gray-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-jme-cyan to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-lg">JS</div>
+                  <div className="ml-4">
+                    <p className="font-semibold">Jessica S.</p>
+                    <p className="text-sm text-gray-500">Self-Led Member</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 italic">"The monthly workout plans are incredible! I've seen more progress in 3 months than I did in a year at my old gym."</p>
+              </div>
+              <div className="bg-gray-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-jme-purple to-purple-700 rounded-full flex items-center justify-center text-white font-bold text-lg">MT</div>
+                  <div className="ml-4">
+                    <p className="font-semibold">Michael T.</p>
+                    <p className="text-sm text-gray-500">Trainer Feedback Member</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 italic">"The form check videos have completely transformed my technique. Jaime's feedback is always detailed and helpful."</p>
+              </div>
+              <div className="bg-gray-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">AL</div>
+                  <div className="ml-4">
+                    <p className="font-semibold">Amanda L.</p>
+                    <p className="text-sm text-gray-500">Trainer Feedback Member</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 italic">"Having direct access to Jaime for questions and workout adaptations has been a game-changer for my fitness journey."</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default MonthlyApp;
