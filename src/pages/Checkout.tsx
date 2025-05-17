@@ -4,7 +4,7 @@ import { ArrowLeft, CreditCard, Lock, Check, User, Mail, Key, Gift } from 'lucid
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { createCheckoutSession } from '../lib/stripe';
+import { createCheckoutSession, hasSubscriptionItems, hasOneTimeItems, handleMixedCart } from '../utils/checkout';
 import { supabase } from '../lib/supabase';
 import { Elements, PaymentElement, useStripe, useElements, AddressElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -101,11 +101,66 @@ function Checkout() {
   const { items, total, removeItem, updateItemInterval } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Force recalculation of prices when component mounts
+  useEffect(() => {
+    // Ensure all items have the correct price based on their current billing interval
+    if (items.length > 0) {
+      // Force update all items to ensure prices are current
+      items.forEach(item => {
+        // Set SHRED Challenge to one-time purchase
+        if (item.name.includes('SHRED')) {
+          item.billingInterval = 'one-time';
+          item.price = 297.00;
+        } 
+        // For other subscription items, update interval to trigger price recalculation
+        else if (item.billingInterval && item.billingInterval !== 'one-time') {
+          updateItemInterval(item.id, item.billingInterval);
+        }
+      });
+      
+      // Force a re-render to update the UI
+      const timer = setTimeout(() => {
+        setLoading(prev => !prev);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);  // Empty dependency array to run only once on mount
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const canceled = searchParams.get('canceled');
-  const [clientSecret, setClientSecret] = useState<string>('');
-  const [showEmbeddedCheckout, setShowEmbeddedCheckout] = useState(false);
+  const [clientSecret] = useState<string>('');
+  const [showEmbeddedCheckout] = useState(false);
+  
+  // Handle checkout initialization and cancellation
+  useEffect(() => {
+    // If the checkout was canceled, reset loading state but don't show error toast
+    // This prevents multiple error messages when returning from a canceled checkout
+    if (canceled === 'true') {
+      setLoading(false);
+      // Remove toast.error to prevent multiple error messages
+    } else if (!loading && user) {
+      // Only trigger checkout if we're not already loading AND the user is logged in
+      // This prevents duplicate checkout attempts and ensures we have user info
+      handleCheckout();
+    } else if (!loading && !user) {
+      // If user is not logged in, redirect to login page
+      toast.error('Please sign in before proceeding to checkout');
+      // Redirect to login page with a return URL to come back to checkout
+      window.location.href = `/auth?returnUrl=${encodeURIComponent('/checkout')}`;
+    }
+  }, [canceled, user]);
+  
+  // Clean up URL parameters when component unmounts or when canceled param is detected
+  useEffect(() => {
+    if (canceled === 'true') {
+      // Remove the canceled parameter from the URL to prevent showing the error on refresh
+      const url = new URL(window.location.href);
+      url.searchParams.delete('canceled');
+      window.history.replaceState({}, '', url);
+    }
+  }, [canceled]);
   
   // Account creation states
   const [email, setEmail] = useState('');
@@ -159,12 +214,13 @@ function Checkout() {
     return 0;
   };
 
-  // Show a message if the payment was canceled
-  useEffect(() => {
-    if (canceled) {
-      toast.error('Payment was canceled. Please try again.');
-    }
-  }, [canceled]);
+  // We don't need to show a message if the payment was canceled
+  // This was causing duplicate error messages
+  // useEffect(() => {
+  //   if (canceled) {
+  //     toast.error('Payment was canceled. Please try again.');
+  //   }
+  // }, [canceled]);
 
   // Handle account creation
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -199,57 +255,75 @@ function Checkout() {
   };
 
   const handleCheckout = async () => {
+    // Simple direct checkout with minimal steps
     setLoading(true);
     setError(null);
     
-    // If user is not logged in and not checking out as guest, show account creation form
-    if (!user && accountStep !== 'complete' && !checkoutAsGuest) {
-      // Only require account for subscriptions that are not gifts
-      if (!allowGuestCheckout()) {
-        setLoading(false);
-        setAccountStep('account');
-        return;
-      }
-    }
-    
     try {
+      // Check if cart is empty
+      if (!items || items.length === 0) {
+        throw new Error('Your cart is empty. Please add items before checkout.');
+      }
+      
       // Get the user's email - either from their account, the form, or guest email
       const customerEmail = user?.email || 
                           (accountStep === 'complete' ? email : undefined) || 
                           (checkoutAsGuest ? email : undefined);
       
-      // Redirect to Stripe Checkout
-      await createCheckoutSession(
-        items,
-        `${window.location.origin}/checkout/success`,
-        `${window.location.origin}/checkout?canceled=true`,
-        customerEmail,
-        isGift ? giftRecipientEmail : undefined
-      );
+      // Ensure all items have the correct prices before checkout
+      const checkoutItems = items.map(item => {
+        // Make sure SHRED Challenge has the correct price
+        if (item.name && item.name.includes('SHRED')) {
+          return {
+            ...item,
+            billingInterval: 'one-time' as 'month' | 'year' | 'one-time',
+            price: 297.00
+          };
+        }
+        return item;
+      });
+      
+      // Production code - no debug logs
+      
+      // Direct call to create-checkout serverless function
+      const response = await fetch('/.netlify/functions/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: checkoutItems,
+          successUrl: `${window.location.origin}/checkout/success`,
+          cancelUrl: `${window.location.origin}/checkout?canceled=true`,
+          customerEmail
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout session');
+      }
+      
+      const session = await response.json();
+      
+      // Immediately redirect to Stripe's hosted checkout
+      if (session && session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error('No checkout URL returned from server');
+      }
       
       // Note: We don't clear the cart here because the user might cancel the checkout
       // The cart will be cleared after successful payment confirmation
     } catch (error: any) {
       console.error('Checkout error:', error);
-      let errorMessage = 'Failed to create checkout session. Please try again.';
       
-      // Extract more detailed error message if available
-      if (error.message) {
-        errorMessage = error.message;
-        
-        // Special handling for server connection errors
-        if (errorMessage.includes('Cannot connect to the server')) {
-          setError('Server Connection Error: The payment server is not running. Please try again later or contact support.');
-        } else {
-          setError(errorMessage);
-        }
-      } else if (typeof error === 'string') {
-        setError(error);
-      } else {
-        setError(errorMessage);
-      }
-      
+      // Simple error handling
+      const errorMessage = error.message || 'Failed to create checkout session. Please try again.';
+      setError(errorMessage);
       toast.error(errorMessage);
+      
+      // Reset loading state
       setLoading(false);
     }
   };
@@ -472,7 +546,7 @@ function Checkout() {
                   <div className="mt-4 text-center">
                     <p className="text-sm text-gray-600">
                       Already have an account?{' '}
-                      <Link to="/auth/login" className="text-jme-purple font-medium hover:text-purple-700">
+                      <Link to="/auth" className="text-jme-purple font-medium hover:text-purple-700">
                         Sign in
                       </Link>
                     </p>
@@ -513,6 +587,24 @@ function Checkout() {
                     </div>
                   ) : (
                     <div className="space-y-3">
+                      {/* Display a warning if the cart has mixed items (both subscription and one-time) */}
+                      {hasSubscriptionItems(items) && hasOneTimeItems(items) && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm text-yellow-700">
+                                Your cart contains both subscription and one-time purchase items. These will be processed as separate transactions.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <button
                         onClick={async () => {
                           setLoading(true);
@@ -524,33 +616,35 @@ function Checkout() {
                                               (accountStep === 'complete' ? email : undefined) || 
                                               (checkoutAsGuest ? email : undefined);
                             
-                            // Create a payment intent on the server and get clientSecret
-                            const response = await fetch('http://localhost:3001/api/create-payment-intent', {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({
-                                items,
+                            // Check if we have a mixed cart (both subscription and one-time items)
+                            if (hasSubscriptionItems(items) && hasOneTimeItems(items)) {
+                              // Show a toast notification about processing as separate transactions
+                              toast.success('Your cart has both subscription and one-time items. Processing subscription items first.');
+                              
+                              // Get subscription items only
+                              const { subscriptionItems } = handleMixedCart(items);
+                              
+                              // Process subscription items first
+                              await createCheckoutSession(
+                                subscriptionItems,
+                                `${window.location.origin}/checkout/success`,
+                                `${window.location.origin}/checkout?canceled=true`,
                                 customerEmail,
-                                giftRecipientEmail: isGift ? giftRecipientEmail : undefined,
-                              }),
-                            });
-                            
-                            if (!response.ok) {
-                              let errorMessage = 'Failed to initialize payment';
-                              try {
-                                const errorData = await response.json();
-                                errorMessage = errorData.error || errorMessage;
-                              } catch (jsonError) {
-                                errorMessage = `${errorMessage}: ${response.statusText}`;
-                              }
-                              throw new Error(errorMessage);
+                                isGift ? giftRecipientEmail : undefined
+                              );
+                            } else {
+                              // Process all items together (either all subscription or all one-time)
+                              await createCheckoutSession(
+                                items,
+                                `${window.location.origin}/checkout/success`,
+                                `${window.location.origin}/checkout?canceled=true`,
+                                customerEmail,
+                                isGift ? giftRecipientEmail : undefined
+                              );
                             }
                             
-                            const data = await response.json();
-                            setClientSecret(data.clientSecret);
-                            setShowEmbeddedCheckout(true);
+                            // The user will be redirected to Stripe's checkout page
+                            // No need to set clientSecret or showEmbeddedCheckout as we're using redirect checkout
                           } catch (error: unknown) {
                             console.error('Payment initialization error:', error);
                             const errorMessage = error instanceof Error ? error.message : 'Failed to initialize payment';
@@ -631,10 +725,15 @@ function Checkout() {
                       <div className="flex flex-wrap justify-between mb-2 pr-8">
                         <div>
                           <h3 className="font-medium">{item.name}</h3>
-                          {hasSubscription && (
+                          {/* Only show billing text for subscription products, not SHRED Challenge */}
+                          {hasSubscription && !item.name.includes('SHRED') && (
                             <p className="text-sm text-gray-500">
                               Billed {item.billingInterval === 'month' ? 'monthly' : 'annually'}
                             </p>
+                          )}
+                          {/* Show one-time payment text for SHRED Challenge */}
+                          {item.name.includes('SHRED') && (
+                            <p className="text-sm text-gray-500">One-time payment</p>
                           )}
                         </div>
                         <p className="font-medium">${item.price.toFixed(2)}</p>
@@ -657,14 +756,22 @@ function Checkout() {
                       
                       {/* Billing interval selection */}
                       {/* Only show billing interval options for subscription products */}
-                      {hasSubscription && !item.name.includes('One-Time') && !item.name.includes('Shred') && (
+                      {hasSubscription && !item.name.includes('One-Time') && !item.name.includes('SHRED') && (
                         <div className="mt-3">
                           <p className="text-sm text-gray-600 mb-2">Billing interval:</p>
                           <div className="flex space-x-3">
                             <div className="flex flex-wrap gap-2 w-full">
                               <button
                                 type="button"
-                                onClick={() => updateItemInterval(item.id, 'month')}
+                                onClick={() => {
+                                  // Use setTimeout to ensure state updates properly
+                                  updateItemInterval(item.id, 'month');
+                                  // Force a re-render after a small delay
+                                  setTimeout(() => {
+                                    // This empty setState forces a re-render
+                                    setLoading(l => l);
+                                  }, 50);
+                                }}
                                 className={`flex flex-1 min-w-[100px] items-center justify-center px-4 py-2 rounded-md text-sm ${item.billingInterval === 'month' 
                                   ? 'bg-jme-purple text-white' 
                                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -674,7 +781,15 @@ function Checkout() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => updateItemInterval(item.id, 'year')}
+                                onClick={() => {
+                                  // Use setTimeout to ensure state updates properly
+                                  updateItemInterval(item.id, 'year');
+                                  // Force a re-render after a small delay
+                                  setTimeout(() => {
+                                    // This empty setState forces a re-render
+                                    setLoading(l => l);
+                                  }, 50);
+                                }}
                                 className={`flex flex-1 min-w-[100px] items-center justify-center px-4 py-2 rounded-md text-sm ${item.billingInterval === 'year' 
                                   ? 'bg-jme-purple text-white' 
                                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -725,9 +840,9 @@ function Checkout() {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>${items.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2)}</span>
                 </div>
-                {items.some(item => item.billingInterval === 'year' && item.yearlyDiscountApplied && !item.name.includes('One-Time') && !item.name.includes('Shred')) && (
+                {items.some(item => item.billingInterval === 'year' && item.yearlyDiscountApplied && !item.name.includes('One-Time') && !item.name.includes('SHRED')) && (
                   <div className="text-sm text-green-600 mt-2 bg-green-50 p-2 rounded">
                     <p className="font-medium">Includes 20% annual discount</p>
                     <p>
