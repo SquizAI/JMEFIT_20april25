@@ -45,7 +45,7 @@ exports.handler = async (event, context) => {
       secure: (process.env.SMTP_SECURE || process.env.EMAIL_SECURE || 'true') === 'true',
       auth: {
         user: process.env.SMTP_USER || process.env.SMTP_USERNAME || process.env.EMAIL_USER || process.env.EMAIL_USERNAME || process.env.MAIL_USER || process.env.MAIL_USERNAME,
-        pass: process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.MAIL_PASS || process.env.MAIL_PASSWORD,
+        pass: process.env.SMTP_PASSWORD || process.env.SMTP_PASSWORD || process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.MAIL_PASS || process.env.MAIL_PASSWORD,
       },
     };
 
