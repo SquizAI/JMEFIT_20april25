@@ -31,6 +31,19 @@ exports.handler = async (event, context) => {
     const { to, subject, html, text, from } = JSON.parse(event.body);
 
     console.log(`📧 Sending email: ${subject} to ${to}`);
+    
+    // Debug environment variables (without exposing values)
+    const envVars = Object.keys(process.env).filter(key => 
+      key.includes('SMTP') || key.includes('EMAIL') || key.includes('MAIL') || key.includes('DEFAULT')
+    );
+    console.log('📋 Available env vars:', envVars);
+    
+    // Check specific variables
+    console.log('🔍 SMTP_HOST exists:', !!process.env.SMTP_HOST);
+    console.log('🔍 SMTP_PORT exists:', !!process.env.SMTP_PORT);
+    console.log('🔍 SMTP_USER exists:', !!process.env.SMTP_USER);
+    console.log('🔍 SMTP_PASSWORD exists:', !!process.env.SMTP_PASSWORD);
+    console.log('🔍 SMTP_SECURE exists:', !!process.env.SMTP_SECURE);
 
     // Create SMTP transporter using Netlify environment variables
     const transporter = nodemailer.createTransport({
