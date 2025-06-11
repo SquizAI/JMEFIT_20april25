@@ -117,7 +117,7 @@ function TransformationsBanner() {
     
     // Event listeners for user interaction
     container.addEventListener('mousedown', handleUserInteraction);
-    container.addEventListener('touchstart', handleUserInteraction);
+    container.addEventListener('touchstart', handleUserInteraction, { passive: true });
     
     return () => {
       cancelAnimationFrame(animationFrameId);

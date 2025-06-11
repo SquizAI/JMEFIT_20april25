@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Dumbbell, CheckCircle2, MessageSquare, Flame, Scale, LineChart, Smartphone, Apple, Info, X } from 'lucide-react';
 import TransformationsBanner from '../components/TransformationsBanner';
 import FAQAccordion from '../components/FAQAccordion';
@@ -10,6 +10,7 @@ import { useCartStore } from '../store/cart';
 import toast from 'react-hot-toast';
 import { getProducts } from '../lib/api/products';
 import { getSubscriptionPlans } from '../lib/api/subscriptions';
+import { STRIPE_PRODUCTS, getPriceAmount, getPriceId, formatPrice } from '../lib/stripe-products';
 
 function Programs() {
 
@@ -38,7 +39,6 @@ function Programs() {
   const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
   
   const { addItem } = useCartStore();
-  const navigate = useNavigate();
   
   // Fetch products and subscription plans from database
   useEffect(() => {
@@ -147,65 +147,77 @@ function Programs() {
     return interval === 'month' ? basePrice : basePrice * 12 * 0.8; // 20% discount for annual
   };
 
-  const handleAddToCart = (productId: string, price: number, name: string, isSubscription: boolean = true) => {
-    // Always use yearly billing interval for subscription products
-    // The user can toggle to monthly in the cart if desired
-    const defaultBillingInterval: 'month' | 'year' = 'year';
+  // Standardized function to get correct price based on current display interval using new Stripe products
+  const getCorrectPrice = (productName: string, programKey: keyof typeof displayIntervals) => {
+    const interval = displayIntervals[programKey];
     
-    // For yearly subscription products, use the yearly price
-    const finalPrice = isSubscription && defaultBillingInterval === 'year' ? 
-      (productId === products.nutritionOnly.id ? products.nutritionOnly.yearlyPrice : 
-       productId === products.nutritionTraining.id ? products.nutritionTraining.yearlyPrice :
-       productId === products.selfLedTraining.id ? products.selfLedTraining.yearlyPrice :
-       productId === products.trainerFeedback.id ? products.trainerFeedback.yearlyPrice : price) : price;
-    
-    // Get the appropriate stripe_price_id from the database products
-    const getStripePriceId = () => {
-      if (!isSubscription) {
-        // For one-time products
-        if (productId === products.macrosCalculation.id) {
-          const product = getOneTimeProduct('Macros Calculation');
-          return product?.prices[0]?.stripe_price_id;
-        } else if (productId === products.shredChallenge.id) {
-          const product = getOneTimeProduct('SHRED Challenge');
-          return product?.prices[0]?.stripe_price_id;
-        }
-      } else {
-        // For subscription products
-        const billingInterval = defaultBillingInterval;
-        let plan;
-        
-        if (productId === products.nutritionOnly.id) {
-          plan = getSubscriptionPlan('Nutrition Only');
-        } else if (productId === products.nutritionTraining.id) {
-          plan = getSubscriptionPlan('Nutrition & Training');
-        } else if (productId === products.selfLedTraining.id) {
-          plan = getSubscriptionPlan('Self-Led Training');
-        } else if (productId === products.trainerFeedback.id) {
-          plan = getSubscriptionPlan('Trainer Feedback');
-        }
-        
-        if (plan && plan.prices) {
-          const price = plan.prices.find((p: any) => p.interval === billingInterval);
-          return price?.stripe_price_id;
-        }
-      }
-      return undefined;
+    // Map product names to STRIPE_PRODUCTS keys
+    const productMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+      "Nutrition Only Program": "NUTRITION_ONLY",
+      "Nutrition Only": "NUTRITION_ONLY", 
+      "Nutrition & Training Program": "NUTRITION_TRAINING",
+      "Nutrition & Training": "NUTRITION_TRAINING",
+      "Self-Led Training Program": "SELF_LED_TRAINING", 
+      "Self-Led Training": "SELF_LED_TRAINING",
+      "Trainer Feedback Program": "TRAINER_FEEDBACK",
+      "Trainer Feedback": "TRAINER_FEEDBACK",
+      "SHRED Challenge": "SHRED_CHALLENGE",
+      "One-Time Macros Calculation": "ONE_TIME_MACROS"
     };
     
-    const stripePriceId = getStripePriceId();
+    const productKey = productMap[productName];
+    if (!productKey) {
+      console.warn(`Unknown product: ${productName}`);
+      return 0;
+    }
     
+    // Get price amount from centralized configuration
+    const amountInCents = getPriceAmount(productKey, interval);
+    return amountInCents / 100; // Convert from cents to dollars
+  };
+
+  const handleAddToCart = (productId: string, price: number, name: string, isSubscription: boolean = true) => {
+    // Map legacy product IDs to new STRIPE_PRODUCTS keys
+    const productMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+      [products.macrosCalculation.id]: "ONE_TIME_MACROS",
+      [products.shredChallenge.id]: "SHRED_CHALLENGE",
+      [products.nutritionOnly.id]: "NUTRITION_ONLY",
+      [products.nutritionTraining.id]: "NUTRITION_TRAINING",
+      [products.selfLedTraining.id]: "SELF_LED_TRAINING",
+      [products.trainerFeedback.id]: "TRAINER_FEEDBACK"
+    };
+    
+    // Get the product key from the mapping
+    const productKey = productMap[productId];
+    let stripePriceId = '';
+    let finalPrice = price;
+    
+    if (productKey) {
+      if (isSubscription) {
+        // For subscription products, default to yearly
+        const defaultBillingInterval: 'month' | 'year' = 'year';
+        stripePriceId = getPriceId(productKey, defaultBillingInterval);
+        finalPrice = getPriceAmount(productKey, defaultBillingInterval) / 100;
+      } else {
+        // For one-time products
+        stripePriceId = getPriceId(productKey);
+        finalPrice = getPriceAmount(productKey) / 100;
+      }
+      console.log(`Using Stripe price ID: ${stripePriceId} for ${name}`);
+    }
+
     addItem({
       id: productId,
       name: name,
       price: finalPrice,
-      billingInterval: isSubscription ? defaultBillingInterval : undefined,
+      billingInterval: isSubscription ? 'year' : 'one-time',
       description: '',
       stripe_price_id: stripePriceId
     });
     
-    // Go directly to checkout instead of cart
-    navigate('/checkout');
+    // Show success toast instead of navigating directly to checkout
+    toast.success(`${name} added to cart`);
+    // Don't navigate to checkout automatically
   };
   
   const handleAppAddToCart = (program: { name: string; price: number; description: string }) => {
@@ -225,17 +237,37 @@ function Programs() {
     // Get the interval for this program
     const interval = displayIntervals[programKey];
     
+    // Check if this is a one-time product like SHRED Challenge
+    const isOneTimeProduct = program.name.includes('SHRED') || program.name.includes('One-Time');
+    
+    // Map program names to STRIPE_PRODUCTS keys for getting the correct Stripe price ID
+    const productMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+      "Self-Led Training": "SELF_LED_TRAINING",
+      "Trainer Feedback": "TRAINER_FEEDBACK",
+      "Nutrition Only Program": "NUTRITION_ONLY",
+      "Nutrition & Training Program": "NUTRITION_TRAINING",
+      "SHRED Challenge": "SHRED_CHALLENGE",
+      "One-Time Macros Calculation": "ONE_TIME_MACROS"
+    };
+    
+    const productKey = productMap[program.name];
+    let stripePriceId = '';
+    
+    if (productKey) {
+      stripePriceId = getPriceId(productKey, isOneTimeProduct ? undefined : interval);
+    }
+    
     addItem({
       id: program.name,
       name: program.name,
       price: program.price,
       description: program.description,
-      billingInterval: interval
+      billingInterval: isOneTimeProduct ? 'one-time' : interval,
+      stripe_price_id: stripePriceId
     });
-    toast.success('Added to cart!');
+    toast.success(`${program.name} added to cart!`);
     
-    // Go directly to checkout instead of cart
-    navigate('/checkout');
+    // Don't navigate to checkout automatically
   };
   const faqItems = [
     {
@@ -321,8 +353,11 @@ function Programs() {
               </button>
               <PricingToggle
                 interval={displayIntervals.nutritionOnly}
-                monthlyPrice={149}
-                onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, nutritionOnly: newInterval }))}
+                monthlyPrice={179}
+                onChange={(newInterval) => setDisplayIntervals(prev => ({ 
+                  ...prev, 
+                  nutritionOnly: newInterval === 'one-time' ? 'month' : newInterval 
+                }))}
               />
             </div>
             <div className="program-card-body">
@@ -348,7 +383,7 @@ function Programs() {
                 <button
                   onClick={() => handleAppAddToCart({
                     name: "Nutrition Only Program",
-                    price: getAppPrice(149),
+                    price: getCorrectPrice("Nutrition Only Program", "nutritionOnly"),
                     description: `Nutrition Only Program (Annual) - Custom nutrition plan & support`
                   })}
                   className="program-button block w-full bg-gradient-to-r from-jme-cyan to-cyan-600 text-white"
@@ -380,8 +415,11 @@ function Programs() {
               </button>
               <PricingToggle
                 interval={displayIntervals.nutritionTraining}
-                monthlyPrice={199}
-                onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, nutritionTraining: newInterval }))}
+                monthlyPrice={249}
+                onChange={(newInterval) => setDisplayIntervals(prev => ({ 
+                  ...prev, 
+                  nutritionTraining: newInterval === 'one-time' ? 'month' : newInterval 
+                }))}
               />
             </div>
             <div className="program-card-body">
@@ -407,7 +445,7 @@ function Programs() {
                 <button
                   onClick={() => handleAppAddToCart({
                     name: "Nutrition & Training Program",
-                    price: getAppPrice(199),
+                    price: getCorrectPrice("Nutrition & Training Program", "nutritionTraining"),
                     description: `Nutrition & Training Program (Annual) - Complete transformation package`
                   })}
                   className="program-button block w-full bg-gradient-to-r from-jme-purple to-purple-700 text-white"
@@ -533,7 +571,7 @@ function Programs() {
                   onClick={() => {
                     handleAppAddToCart({
                       name: "Nutrition Only Program",
-                      price: getAppPrice(149),
+                      price: getAppPrice(179),
                       description: `Nutrition Only Program (Annual) - Custom nutrition plan & support`
                     });
                     setShowNutritionDetails(false);
@@ -671,7 +709,7 @@ function Programs() {
                   onClick={() => {
                     handleAppAddToCart({
                       name: "Nutrition & Training Program",
-                      price: getAppPrice(199),
+                      price: getAppPrice(249),
                       description: `Nutrition & Training Program (Annual) - Complete transformation package`
                     });
                     setShowNutritionTrainingDetails(false);
@@ -721,7 +759,7 @@ function Programs() {
               </div>
               
               <div className="bg-purple-50 p-5 rounded-xl mb-6">
-                <div className="text-xl font-bold text-gray-800 mb-2">Trainer Feedback $34.99 <span className="text-base font-normal text-gray-600">(Month-to-Month)</span></div>
+                <div className="text-xl font-bold text-gray-800 mb-2">Trainer Feedback $49.99 <span className="text-base font-normal text-gray-600">(Month-to-Month)</span></div>
               </div>
               
               <div className="mb-8">
@@ -766,10 +804,10 @@ function Programs() {
               <div className="flex justify-center">
                 <button
                   onClick={() => {
-                    handleAppAddToCart({ 
-                      name: "Trainer Feedback",
-                      price: getAppPrice(34.99),
-                      description: "Trainer Feedback (Annual) - Personal guidance & form checks"
+                    handleAppAddToCart({
+                      name: "Trainer Feedback Program",
+                      price: getCorrectPrice("Trainer Feedback", "trainerFeedback"),
+                      description: `${displayIntervals.trainerFeedback === 'month' ? "Monthly" : "Annual"} Trainer Feedback Program - Premium training with personal guidance`
                     });
                     setShowTrainerFeedbackDetails(false);
                   }}
@@ -818,7 +856,7 @@ function Programs() {
               </div>
               
               <div className="bg-cyan-50 p-5 rounded-xl mb-6">
-                <div className="text-xl font-bold text-gray-800 mb-2">Self-Led $19.99 <span className="text-base font-normal text-gray-600">(Month-to-Month)</span></div>
+                <div className="text-xl font-bold text-gray-800 mb-2">Self-Led $24.99 <span className="text-base font-normal text-gray-600">(Month-to-Month)</span></div>
               </div>
               
               <div className="mb-8">
@@ -874,14 +912,11 @@ function Programs() {
               
               <div className="flex justify-center">
                 <button
-                  onClick={() => {
-                    handleAppAddToCart({ 
-                      name: "Self-Led Training",
-                      price: getAppPrice(19.99, displayIntervals.selfLed),
-                      description: displayIntervals.selfLed === 'month' ? "Monthly Self-Led Training - Monthly workout plans & app access" : "Annual Self-Led Training - Monthly workout plans & app access"
-                    });
-                    setShowSelfLedDetails(false);
-                  }}
+                  onClick={() => handleAppAddToCart({ 
+                    name: "Self-Led Training",
+                    price: getCorrectPrice("Self-Led Training", "selfLed"),
+                    description: `${displayIntervals.selfLed === 'month' ? "Monthly" : "Annual"} Self-Led Training - Monthly workout plans & app access`
+                  })}
                   className="bg-gradient-to-r from-jme-cyan to-cyan-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Start Self-Led Training
@@ -926,8 +961,11 @@ function Programs() {
               </button>
               <PricingToggle
                 interval={displayIntervals.selfLed}
-                monthlyPrice={19.99}
-                onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, selfLed: newInterval }))}
+                monthlyPrice={24.99}
+                onChange={(newInterval) => setDisplayIntervals(prev => ({ 
+                  ...prev, 
+                  selfLed: newInterval === 'one-time' ? 'month' : newInterval 
+                }))}
               />
             </div>
             <div className="program-card-body">
@@ -961,8 +999,8 @@ function Programs() {
                 <button
                   onClick={() => handleAppAddToCart({ 
                     name: "Self-Led Training",
-                    price: getAppPrice(19.99, displayIntervals.selfLed),
-                    description: displayIntervals.selfLed === 'month' ? "Monthly Self-Led Training - Monthly workout plans & app access" : "Annual Self-Led Training - Monthly workout plans & app access"
+                    price: getCorrectPrice("Self-Led Training", "selfLed"),
+                    description: `${displayIntervals.selfLed === 'month' ? "Monthly" : "Annual"} Self-Led Training - Monthly workout plans & app access`
                   })}
                   className="program-button block w-full bg-gradient-to-r from-jme-cyan to-cyan-600 text-white"
                 >
@@ -992,8 +1030,11 @@ function Programs() {
               </button>
               <PricingToggle
                 interval={displayIntervals.trainerFeedback}
-                monthlyPrice={34.99}
-                onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, trainerFeedback: newInterval }))}
+                monthlyPrice={49.99}
+                onChange={(newInterval) => setDisplayIntervals(prev => ({ 
+                  ...prev, 
+                  trainerFeedback: newInterval === 'one-time' ? 'month' : newInterval 
+                }))}
               />
             </div>
             <div className="program-card-body">
@@ -1031,7 +1072,7 @@ function Programs() {
                 <button
                   onClick={() => handleAppAddToCart({
                     name: "Trainer Feedback Program",
-                    price: getAppPrice(34.99),
+                    price: getAppPrice(49.99),
                     description: "Annual Trainer Feedback Program - Premium training with personal guidance"
                   })}
                   className="program-button block w-full bg-gradient-to-r from-jme-purple to-purple-700 text-white"
@@ -1107,7 +1148,7 @@ function Programs() {
                 </div>
                 <h2 className="text-4xl font-bold">SHRED with JmeFit!</h2>
               </div>
-              <div className="text-4xl font-bold mb-6">$249<span className="text-xl font-normal ml-2">one-time payment</span></div>
+              <div className="text-4xl font-bold mb-6">$297<span className="text-xl font-normal ml-2">one-time payment</span></div>
               
               <div className="mb-6 max-w-md mx-auto">
                 <label htmlFor="shredDate" className="block text-white text-lg font-medium mb-2">Select Start Date:</label>
@@ -1120,8 +1161,6 @@ function Programs() {
                   required
                 >
                   <option value="" disabled>Choose a start date</option>
-                  <option value="2025-04-13">April 13, 2025</option>
-                  <option value="2025-05-18">May 18, 2025</option>
                   <option value="2025-07-06">July 6, 2025</option>
                   <option value="2025-08-10">August 10, 2025</option>
                   <option value="2025-09-14">September 14, 2025</option>
@@ -1243,12 +1282,7 @@ function Programs() {
                 </div>
               </div>
               
-              <Link
-                to="/shred-waitlist"
-                className="inline-block bg-gradient-to-r from-white to-gray-100 text-jme-purple font-bold py-4 px-10 rounded-xl hover:from-gray-100 hover:to-white transform hover:scale-105 transition-all duration-300 mt-8 shadow-lg hover:shadow-xl border-2 border-white/50"
-              >
-                Join the SHRED Waitlist
-              </Link>
+              
             </div>
           </div>
         </div>

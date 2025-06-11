@@ -1,0 +1,363 @@
+/**
+ * OpenAI Chat Integration for JMEFit Chatbot
+ * 
+ * This module provides functions for working with OpenAI's API
+ * to power the JMEFit AI assistant with structured responses,
+ * interactive buttons, and personalized fitness & nutrition guidance.
+ */
+
+// Type for the response from the chat
+export type ChatResponse = {
+  message: string;
+  type: 'text' | 'program_list' | 'recommendation' | 'nutrition_guide' | 'quick_actions' | 'lead_capture' | 'workout_info';
+  data?: any;
+  quick_replies?: QuickReply[];
+  actions?: { type: string; data?: any }[];
+};
+
+// Type for quick reply buttons
+export interface QuickReply {
+  text: string;
+  action: string;
+  payload?: any;
+}
+
+// Type for chat session
+export interface ChatSession {
+  id: string;
+  messages: { role: 'user' | 'assistant' | 'system'; content: string }[];
+  context: {
+    userGoals?: string[];
+    experienceLevel?: string;
+    interestedPrograms?: string[];
+    programViews?: string[];
+    lastInteractionTime?: number;
+  };
+}
+
+// Placeholder for program data
+export const getJMEFitPrograms = () => {
+  return [
+    {
+      id: 'nutrition-only',
+      name: 'Nutrition Mastery Program',
+      price: {
+        monthly: '$97/month',
+        yearly: '$970/year'
+      },
+      description: 'Transform your body through nutrition with personalized meal plans and expert coaching',
+      features: [
+        'Custom macros and calorie targets',
+        'Weekly check-ins with Jaime',
+        'Adjustments based on your progress',
+        'Food guides and meal examples',
+        'Unlimited messaging support'
+      ],
+      commitment: 'Monthly subscription - cancel anytime',
+      stripePriceIds: {
+        monthly: 'price_nutrition_monthly',
+        yearly: 'price_nutrition_yearly'
+      }
+    },
+    {
+      id: 'nutrition-training',
+      name: 'Complete Transformation Bundle',
+      price: {
+        monthly: '$147/month',
+        yearly: '$1470/year'
+      },
+      description: 'Our most powerful program combines personalized nutrition guidance and custom workout plans for maximum results',
+      features: [
+        'Everything in Nutrition Mastery',
+        'Personalized workout programming',
+        'Form check video reviews',
+        'Access to exercise library',
+        'Progress tracking tools'
+      ],
+      commitment: 'Monthly subscription - cancel anytime',
+      stripePriceIds: {
+        monthly: 'price_complete_monthly',
+        yearly: 'price_complete_yearly'
+      },
+      popular: true
+    },
+    {
+      id: 'self-led-training',
+      name: 'Self-Guided Fitness Plan',
+      price: {
+        monthly: '$67/month',
+        yearly: '$670/year'
+      },
+      description: 'Structured workout programs you can follow independently with community support',
+      features: [
+        'Progressive workout plans',
+        'Video demonstrations',
+        'Exercise substitutions',
+        'Access to community forum',
+        'Monthly program updates'
+      ],
+      commitment: 'Monthly subscription - cancel anytime',
+      stripePriceIds: {
+        monthly: 'price_selfled_monthly',
+        yearly: 'price_selfled_yearly'
+      }
+    }
+  ];
+};
+
+// Add stage-specific cached responses
+export const CACHED_RESPONSES: Record<string, ChatResponse> = {
+  // Welcome response
+  welcome: {
+    message: "Welcome to JMEFit! I'm Jaime's AI assistant, here to help you find the perfect fitness program for your goals. What's your primary fitness goal?",
+    type: 'text',
+    quick_replies: [
+      { text: '💪 Build Muscle', action: 'muscle_gain' },
+      { text: '🔥 Lose Weight', action: 'weight_loss' },
+      { text: '🥗 Improve Nutrition', action: 'nutrition' },
+      { text: '🏃 Overall Fitness', action: 'fitness' }
+    ]
+  },
+  
+  // Show programs response
+  show_programs: {
+    message: "Here are our JMEFit programs designed to help you reach your fitness goals:",
+    type: 'program_list',
+    data: {
+      programs: []  // Will be populated at runtime
+    },
+    quick_replies: [
+      { text: '💪 Get Personalized Recommendation', action: 'get_recommendation' },
+      { text: '❓ Ask Questions', action: 'ask_questions' },
+      { text: '🏆 See Success Stories', action: 'success_stories' }
+    ]
+  },
+  
+  // Recommendation response
+  get_recommendation: {
+    message: "Based on what you've shared, I think our Complete Transformation Bundle would be perfect for you! It includes personalized nutrition coaching and custom workouts designed specifically for your goals and preferences.",
+    type: 'recommendation',
+    data: {
+      id: "nutrition-training",
+      name: "Complete Transformation Bundle",
+      popular: true,
+      price: {
+        monthly: "147",
+      },
+      description: "Our most effective program combines personalized nutrition guidance and efficient workout plans tailored to your schedule and goals.",
+      features: [
+        "Custom meal plans that fit your preferences",
+        "Time-efficient workouts designed for maximum fat loss",
+        "Weekly adjustments based on your progress",
+        "Access to supportive community for motivation",
+        "Mobile app for tracking and workouts on-the-go"
+      ]
+    },
+    quick_replies: [
+      { text: '📊 View Programs', action: 'show_programs' },
+      { text: '🎯 Get Recommendation', action: 'get_recommendation' },
+      { text: '❓ Ask Questions', action: 'ask_questions' }
+    ]
+  },
+  
+  // Other cached responses
+  compare_features: {
+    message: "Here's a comparison of our program features:",
+    type: 'text',
+    data: {
+      comparison: [
+        { 
+          name: "Nutrition Only", 
+          price: "$97/month",
+          features: ["Custom meal plans", "Weekly check-ins", "Unlimited support"] 
+        },
+        { 
+          name: "Complete Transformation", 
+          price: "$147/month",
+          features: ["Custom meal plans", "Custom workouts", "Form checks", "Priority support"] 
+        }
+      ]
+    },
+    quick_replies: [
+      { text: '❓ Ask a Question', action: 'ask_questions' },
+      { text: '💰 See Pricing', action: 'show_programs' }
+    ]
+  },
+  
+  nutrition_guide: {
+    message: "Nutrition is the foundation of any successful fitness journey. Here's a quick guide to our nutrition approach:",
+    type: 'nutrition_guide',
+    data: {
+      tips: [
+        "Focus on whole foods - fruits, vegetables, lean proteins",
+        "Drink plenty of water throughout the day",
+        "Monitor portion sizes rather than restricting foods",
+        "Aim for consistency over perfection",
+        "Get adequate protein to support muscle maintenance"
+      ],
+      programs: [
+        "Our Nutrition Mastery Program provides personalized macro calculations",
+        "Weekly adjustments based on your progress",
+        "Flexible approach that works with your lifestyle"
+      ]
+    },
+    quick_replies: [
+      { text: '🍽️ Nutrition Program', action: 'nutrition-only' },
+      { text: '❓ Ask a Question', action: 'ask_questions' }
+    ]
+  }
+};
+
+// Create a new chat session
+export const createChatSession = (): ChatSession => {
+  return {
+    id: `chat_${Date.now()}`,
+    messages: [],
+    context: {
+      userGoals: [],
+      programViews: [],
+      lastInteractionTime: Date.now()
+    }
+  };
+};
+
+// Send a message to the chat and get a response
+export const sendMessage = async (session: ChatSession, message: string): Promise<ChatResponse> => {
+  try {
+    // In this simplified version, we'll use the cached responses
+    // Check for keyword matches
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('program') || lowerMessage.includes('plan')) {
+      const programsResponse = {...CACHED_RESPONSES.show_programs};
+      programsResponse.data = programsResponse.data || {};
+      programsResponse.data.programs = getJMEFitPrograms();
+      return programsResponse;
+    }
+    
+    if (lowerMessage.includes('recommend') || lowerMessage.includes('best for me')) {
+      return CACHED_RESPONSES.get_recommendation;
+    }
+    
+    if (lowerMessage.includes('nutrition') || lowerMessage.includes('diet') || lowerMessage.includes('food')) {
+      return CACHED_RESPONSES.nutrition_guide;
+    }
+    
+    if (lowerMessage.includes('compare') || lowerMessage.includes('difference')) {
+      return CACHED_RESPONSES.compare_features;
+    }
+    
+    // Default response if no keywords match
+    return {
+      message: "Thanks for your message! How can I help you with your fitness goals today?",
+      type: 'text',
+      quick_replies: [
+        { text: '📊 View Programs', action: 'show_programs' },
+        { text: '🎯 Get Recommendation', action: 'get_recommendation' },
+        { text: '❓ Ask Questions', action: 'ask_questions' }
+      ]
+    };
+  } catch (error) {
+    console.error('Error in sendMessage:', error);
+    return {
+      message: "I'm sorry, I'm having trouble processing your request right now. Please try again.",
+      type: 'text',
+      quick_replies: [
+        { text: '📊 View Programs', action: 'show_programs' },
+        { text: '❓ Try Again', action: 'retry' }
+      ]
+    };
+  }
+};
+
+// Helper functions for context extraction
+export const extractGoals = (message: string): string[] => {
+  const goals: string[] = [];
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('weight loss') || lowerMessage.includes('lose weight') || lowerMessage.includes('fat loss')) {
+    goals.push('weight_loss');
+  }
+  
+  if (lowerMessage.includes('muscle') || lowerMessage.includes('strength') || lowerMessage.includes('stronger')) {
+    goals.push('muscle_gain');
+  }
+  
+  if (lowerMessage.includes('nutrition') || lowerMessage.includes('diet') || lowerMessage.includes('eat better')) {
+    goals.push('nutrition');
+  }
+  
+  if (lowerMessage.includes('fitness') || lowerMessage.includes('health') || lowerMessage.includes('active')) {
+    goals.push('general_fitness');
+  }
+  
+  return goals;
+};
+
+export const extractExperienceLevel = (message: string): string | undefined => {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('beginner') || lowerMessage.includes('just starting') || lowerMessage.includes('new to')) {
+    return 'beginner';
+  }
+  
+  if (lowerMessage.includes('intermediate') || lowerMessage.includes('some experience') || lowerMessage.includes('few years')) {
+    return 'intermediate';
+  }
+  
+  if (lowerMessage.includes('advanced') || lowerMessage.includes('experienced') || lowerMessage.includes('many years')) {
+    return 'advanced';
+  }
+  
+  return undefined;
+};
+
+export const findCachedResponse = (message: string): ChatResponse => {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('program') || lowerMessage.includes('plan')) {
+    const programsResponse = {...CACHED_RESPONSES.show_programs};
+    programsResponse.data = programsResponse.data || {};
+    programsResponse.data.programs = getJMEFitPrograms();
+    return programsResponse;
+  }
+  
+  if (lowerMessage.includes('recommend') || lowerMessage.includes('best for me')) {
+    return CACHED_RESPONSES.get_recommendation;
+  }
+  
+  if (lowerMessage.includes('nutrition') || lowerMessage.includes('diet') || lowerMessage.includes('food')) {
+    return CACHED_RESPONSES.nutrition_guide;
+  }
+  
+  if (lowerMessage.includes('compare') || lowerMessage.includes('difference')) {
+    return CACHED_RESPONSES.compare_features;
+  }
+  
+  // Default response
+  return {
+    message: "Thanks for your message! How can I help you with your fitness goals today?",
+    type: 'text',
+    quick_replies: [
+      { text: '📊 View Programs', action: 'show_programs' },
+      { text: '🎯 Get Recommendation', action: 'get_recommendation' },
+      { text: '❓ Ask Questions', action: 'ask_questions' }
+    ]
+  };
+};
+
+export const getProgramRecommendation = async (userPreferences: any): Promise<any> => {
+  // Simple recommendation
+  return {
+    program: "Complete Transformation Bundle",
+    reasoning: "Based on your preferences, this program offers the best combination of features and value for your goals.",
+    features: [
+      "Custom meal plans that fit your preferences",
+      "Personalized workout programming",
+      "Weekly adjustments based on progress",
+      "Access to exercise library"
+    ],
+    price: "$147/month",
+    id: "nutrition-training"
+  };
+}; 

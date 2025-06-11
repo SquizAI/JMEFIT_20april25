@@ -1,4 +1,3 @@
-
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navigation from './components/Navigation';
@@ -34,6 +33,7 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { useMetrics } from './lib/hooks/useMetrics';
 import ScrollToTop from './components/ScrollToTop';
 import PageTransition from './components/PageTransition';
+import OpenAIChatWidget from './components/chat/OpenAIChatWidget';
 
 function App() {
   useMetrics();
@@ -92,6 +92,7 @@ function App() {
             </AnimatePresence>
             </div>
             <Footer />
+            <OpenAIChatWidget />
           </div>
         </ErrorBoundary>
       </AuthProvider>

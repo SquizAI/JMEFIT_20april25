@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, X, Clock } from 'lucide-react';
 import { useCartStore } from '../store/cart';
 import PricingToggle from './PricingToggle';
-import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CartDropdownProps {
   onClose: () => void;
@@ -15,10 +15,35 @@ function CartDropdown({ onClose }: CartDropdownProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const navigate = useNavigate();
   const cartRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
   
   // Format price to display with exactly 2 decimal places
   const formatPrice = (price: number) => {
     return price.toFixed(2);
+  };
+
+  // Get the monthly price based on the product name
+  const getMonthlyPrice = (productName: string) => {
+    switch (productName) {
+      case "Nutrition Only":
+      case "Nutrition Only Program":
+        return 179.00;
+      case "Nutrition & Training":
+      case "Nutrition & Training Program":
+        return 249.00;
+      case "Self-Led Training":
+      case "Self-Led Training Program":
+        return 24.99;
+      case "Trainer Feedback":
+      case "Trainer Feedback Program":
+        return 49.99;
+      case "SHRED Challenge":
+        return 297.00;
+      case "One-Time Macros Calculation":
+        return 99.00;
+      default:
+        return 179.00; // Default fallback
+    }
   };
 
   useEffect(() => {
@@ -90,14 +115,17 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                   <div className="flex-1 space-y-2">
                     <h4 className="font-semibold text-gray-900">{item.name}</h4>
                     <p className="text-sm text-gray-500">{item.description}</p>
-                    {item.billingInterval && (
+                    {/* Only show billing interval toggle for subscription products */}
+                    {item.billingInterval && 
+                     !item.name.includes('SHRED') && 
+                     !item.name.includes('One-Time') &&
+                     !item.name.includes('Macros Calculation') &&
+                     item.billingInterval !== 'one-time' && (
                       <div className="mt-4">
                         <PricingToggle
                           interval={item.billingInterval}
                           onChange={(newInterval) => updateItemInterval(item.id, newInterval)}
-                          monthlyPrice={item.billingInterval === 'month' ? 
-                            item.price : 
-                            parseFloat(((item.price / 0.8) / 12).toFixed(2))}
+                          monthlyPrice={getMonthlyPrice(item.name)}
                         />
                         {item.billingInterval === 'year' && (
                           <p className="text-xs text-green-600 font-medium mt-2">
@@ -112,14 +140,14 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                       <span className="font-bold text-lg">${formatPrice(item.price)}</span>
                       {item.billingInterval && (
                         <div className="text-sm text-gray-500">
-                          per {item.billingInterval}
+                          {item.billingInterval === 'year' ? 'per year' : 
+                           item.billingInterval === 'one-time' ? 'one-time payment' : 'per month'}
                         </div>
                       )}
                     </div>
                     <button
                       onClick={() => {
                         removeItem(item.id);
-                        toast.success('Item removed from cart');
                         
                         // Don't close the cart dropdown when removing an item
                         // Only navigate away if the cart becomes empty
@@ -128,11 +156,11 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                           // Don't navigate away, just close the cart
                         }
                       }}
-                      className="ml-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:rotate-90"
+                      className="ml-2 sm:ml-4 p-2.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:rotate-90 touch-manipulation"
                       aria-label="Remove item"
                       title="Remove from cart"
                     >
-                      <X className="w-5 h-5" />
+                      <X className="w-6 h-6 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 </div>
@@ -151,17 +179,30 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                     onClose();
                     navigate('/programs'); // Navigate to programs page
                   }}
-                  className="py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-300 font-medium hover:shadow-md"
+                  className="py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-300 font-medium hover:shadow-md order-2 sm:order-1"
                 >
                   Continue Shopping
                 </button>
-                <Link
-                  to="/checkout"
-                  onClick={onClose}
-                  className="flex-1 bg-gradient-to-r from-jme-purple to-purple-700 text-white text-center py-3 px-4 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02] duration-300 btn-hover-effect"
-                >
-                  Proceed to Checkout
-                </Link>
+                
+                {user ? (
+                  <Link
+                    to="/checkout"
+                    onClick={onClose}
+                    className="flex-1 bg-gradient-to-r from-jme-purple to-purple-700 text-white text-center py-3 px-6 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] duration-300 btn-hover-effect order-1 sm:order-2"
+                  >
+                    🚀 Proceed to Checkout
+                  </Link>
+                ) : (
+                  <Link
+                    to={`/auth?returnUrl=${encodeURIComponent('/checkout')}`}
+                    onClick={() => {
+                      onClose();
+                    }}
+                    className="flex-1 bg-gradient-to-r from-jme-purple to-purple-700 text-white text-center py-3 px-6 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] duration-300 btn-hover-effect order-1 sm:order-2"
+                  >
+                    🚀 Sign In & Checkout
+                  </Link>
+                )}
               </div>
               <div className="flex items-center justify-center gap-2 mt-4">
                 <Clock className="w-4 h-4 text-gray-400" />

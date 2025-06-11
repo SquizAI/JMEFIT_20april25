@@ -1,0 +1,221 @@
+/**
+ * Stripe Products Utility
+ * 
+ * This module contains the product catalog and utility functions for working
+ * with Stripe pricing and products.
+ */
+
+// Define the types for our price structure
+interface PriceOption {
+  amount: number;
+  id: string;
+  savings?: number;
+}
+
+interface SubscriptionPrices {
+  month: PriceOption;
+  year: PriceOption;
+}
+
+interface OneTimePrices {
+  one_time: PriceOption;
+}
+
+type ProductPrices = SubscriptionPrices | OneTimePrices;
+
+interface Product {
+  name: string;
+  description: string;
+  features: string[];
+  prices: ProductPrices;
+}
+
+type ProductCatalog = {
+  [key: string]: Product;
+};
+
+// Define product catalog with pricing information
+export const STRIPE_PRODUCTS: ProductCatalog = {
+  'nutrition-only': {
+    name: 'Nutrition Only',
+    description: 'Custom nutrition plan tailored to your goals',
+    features: [
+      'Personalized nutrition plan',
+      'Macros calculation',
+      'Meal planning guide',
+      'Monthly adjustments'
+    ],
+    prices: {
+      month: {
+        amount: 9900, // in cents
+        id: 'price_nutrition_monthly'
+      },
+      year: {
+        amount: 99900, // in cents
+        id: 'price_nutrition_yearly',
+        savings: 19
+      }
+    }
+  },
+  'nutrition-training': {
+    name: 'Complete Transformation Bundle',
+    description: 'Our most popular program includes nutrition and training',
+    features: [
+      'Personalized nutrition plan',
+      'Custom workout programming',
+      'Weekly check-ins and adjustments',
+      'Access to mobile app',
+      'Form check videos'
+    ],
+    prices: {
+      month: {
+        amount: 19900, // in cents
+        id: 'price_nutrition_training_monthly'
+      },
+      year: {
+        amount: 199900, // in cents
+        id: 'price_nutrition_training_yearly',
+        savings: 17
+      }
+    }
+  },
+  'self-led-training': {
+    name: 'Self-Led Training',
+    description: 'Workout plans you can follow on your own',
+    features: [
+      'Workout programming based on goals',
+      'Video exercise guides',
+      'Progress tracking',
+      'Access to mobile app'
+    ],
+    prices: {
+      month: {
+        amount: 4900, // in cents
+        id: 'price_selfled_monthly'
+      },
+      year: {
+        amount: 49900, // in cents
+        id: 'price_selfled_yearly',
+        savings: 15
+      }
+    }
+  },
+  'trainer-feedback': {
+    name: 'Trainer Feedback',
+    description: 'Get personalized coaching feedback on your workouts',
+    features: [
+      'Form check videos',
+      'Weekly feedback',
+      'Program adjustments',
+      'Direct trainer access'
+    ],
+    prices: {
+      month: {
+        amount: 14900, // in cents
+        id: 'price_feedback_monthly'
+      },
+      year: {
+        amount: 149900, // in cents
+        id: 'price_feedback_yearly',
+        savings: 16
+      }
+    }
+  },
+  'shred-challenge': {
+    name: 'SHRED Challenge',
+    description: '8-week program to lose fat and build lean muscle',
+    features: [
+      'Complete 8-week program',
+      'Nutrition guide',
+      'Daily workouts',
+      'Community support'
+    ],
+    prices: {
+      one_time: {
+        amount: 9900, // in cents
+        id: 'price_shred_onetime'
+      }
+    }
+  },
+  'one-time-macros': {
+    name: 'One-Time Macros Calculation',
+    description: 'Get your customized macro targets based on your goals',
+    features: [
+      'Personalized macro targets',
+      'Nutritional guidelines',
+      'PDF guide',
+      'One-time purchase'
+    ],
+    prices: {
+      one_time: {
+        amount: 2900, // in cents
+        id: 'price_macros_onetime'
+      }
+    }
+  }
+};
+
+/**
+ * Get the price amount for a product and interval
+ */
+export const getPriceAmount = (productKey: string, interval?: string): number => {
+  const product = STRIPE_PRODUCTS[productKey];
+  if (!product) {
+    console.error(`Product not found: ${productKey}`);
+    return 0;
+  }
+  
+  // One-time products
+  if ('one_time' in product.prices) {
+    return product.prices.one_time.amount;
+  }
+  
+  // Subscription products
+  const subscriptionPrices = product.prices as SubscriptionPrices;
+  if (!interval || interval === 'month') {
+    // Default to monthly if no interval specified
+    return subscriptionPrices.month?.amount || 0;
+  }
+  
+  if (interval === 'year') {
+    return subscriptionPrices.year?.amount || 0;
+  }
+  
+  return 0;
+};
+
+/**
+ * Get the Stripe price ID for a product and interval
+ */
+export const getPriceId = (productKey: string, interval?: string): string => {
+  const product = STRIPE_PRODUCTS[productKey];
+  if (!product) {
+    console.error(`Product not found: ${productKey}`);
+    return '';
+  }
+  
+  // One-time products
+  if ('one_time' in product.prices) {
+    return product.prices.one_time.id;
+  }
+  
+  // Subscription products
+  if (!interval) {
+    // Default to monthly if no interval specified
+    return (product.prices as SubscriptionPrices).month?.id || '';
+  }
+  
+  return (product.prices as SubscriptionPrices)[interval as keyof SubscriptionPrices]?.id || '';
+};
+
+/**
+ * Format a price amount for display
+ */
+export const formatPrice = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount / 100); // Convert cents to dollars
+}; 

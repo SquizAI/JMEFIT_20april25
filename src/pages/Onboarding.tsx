@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { ArrowRight, Dumbbell, Scale, Target, CheckCircle2, Loader } from 'lucide-react';
+import { ArrowRight, Dumbbell, Scale, Target, CheckCircle2, Loader, Salad } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-type FitnessGoal = 'lose-fat' | 'build-muscle' | 'get-stronger' | 'improve-health';
+type FitnessGoal = 'weight-loss' | 'muscle-gain' | 'overall-fitness' | 'nutrition';
 type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
 type TrainingLocation = 'gym' | 'home' | 'both';
 
@@ -96,10 +96,10 @@ function Onboarding() {
             <h2 className="text-2xl font-bold mb-8">What are your fitness goals?</h2>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { id: 'lose-fat', label: 'Lose Fat', icon: Scale },
-                { id: 'build-muscle', label: 'Build Muscle', icon: Dumbbell },
-                { id: 'get-stronger', label: 'Get Stronger', icon: Target },
-                { id: 'improve-health', label: 'Improve Health', icon: CheckCircle2 }
+                { id: 'weight-loss', label: 'Lose Weight', icon: Scale },
+                { id: 'muscle-gain', label: 'Build Muscle', icon: Dumbbell },
+                { id: 'overall-fitness', label: 'Overall Fitness', icon: Target },
+                { id: 'nutrition', label: 'Improve Nutrition', icon: Salad }
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -124,9 +124,9 @@ function Onboarding() {
             <h2 className="text-2xl font-bold mb-8">What's your experience level?</h2>
             <div className="grid grid-cols-3 gap-4">
               {[
-                { id: 'beginner', label: 'Beginner' },
-                { id: 'intermediate', label: 'Intermediate' },
-                { id: 'advanced', label: 'Advanced' }
+                { id: 'beginner', label: 'Beginner (0-1 years)' },
+                { id: 'intermediate', label: 'Intermediate (1-3 years)' },
+                { id: 'advanced', label: 'Advanced (3+ years)' }
               ].map(({ id, label }) => (
                 <button
                   key={id}
@@ -150,9 +150,9 @@ function Onboarding() {
             <h2 className="text-2xl font-bold mb-8">Where will you train?</h2>
             <div className="grid grid-cols-3 gap-4">
               {[
-                { id: 'gym', label: 'At the Gym' },
-                { id: 'home', label: 'At Home' },
-                { id: 'both', label: 'Both' }
+                { id: 'gym', label: 'Gym Workouts' },
+                { id: 'home', label: 'Home Workouts' },
+                { id: 'both', label: 'Both Options' }
               ].map(({ id, label }) => (
                 <button
                   key={id}

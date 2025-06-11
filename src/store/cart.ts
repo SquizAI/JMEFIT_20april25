@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
+import { STRIPE_PRODUCTS, getPriceAmount, getPriceId } from '../lib/stripe-products';
 
 interface CartItem {
   id: string;
@@ -43,139 +43,155 @@ export const useCartStore = create(
   items: [],
   total: 0,
   addItem: async (item) => {
+    // Validate required item properties
+    if (!item || !item.name) {
+      console.error('Invalid item passed to addItem:', item);
+      return;
+    }
+    
     // Set default billing interval based on product type
-    // SHRED Challenge and other one-time products should always be one-time
     let billingInterval = item.billingInterval || 'month';
     
-    // Force one-time billing interval for SHRED Challenge
-    if (item.name.includes('SHRED')) {
+    // Force one-time billing interval for one-time products
+    if (item.name.includes('SHRED') || 
+        item.name.includes('One-Time') || 
+        item.name.includes('Macros Calculation')) {
       billingInterval = 'one-time';
     }
     
     try {
-      // Get the product and its prices from Supabase
-      const { data: priceData, error } = await supabase
-        .from('prices')
-        .select('*, products(*)')
-        .eq('active', true);
-      
-      if (error) throw error;
-      
-      console.log('Available prices:', priceData);
-      console.log('Looking for product:', item.name, 'with interval:', billingInterval);
-      
-      // First, try an exact match
-      let matchingPrice = priceData.find(p => {
-        const exactMatch = p.products?.name === item.name && p.interval === billingInterval;
-        if (exactMatch) {
-          console.log(`Found exact match for ${item.name} with interval ${billingInterval}`);
-        }
-        return exactMatch;
-      });
-
-      // If no exact match, try partial name matching
-      if (!matchingPrice) {
-        console.log(`No exact match found, trying partial matches for ${item.name} with interval ${billingInterval}`);
+      // Check for duplicate items first
+      const existingItemIndex = get().items.findIndex(existingItem => {
+        // Normalize names for comparison
+        const normalizeName = (name: string) => name.toLowerCase().replace(/\s+program\s*$/i, '').trim();
+        const isSameProduct = normalizeName(existingItem.name) === normalizeName(item.name);
+        const isSameBilling = existingItem.billingInterval === billingInterval;
         
-        matchingPrice = priceData.find(p => {
-          // Check if product names partially match (case insensitive match in either direction)
-          // Normalize both strings for comparison: remove 'Program', extra spaces, etc.
+        // Prevent exact duplicates (same product + same billing interval)
+        return isSameProduct && isSameBilling;
+      });
+      
+      if (existingItemIndex !== -1) {
+        // Item already exists with same billing interval - don't add duplicate
+        return;
+      }
+      
+      // Map product names to STRIPE_PRODUCTS keys for consistent pricing
+      const productNameMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+        "Nutrition Only Program": "NUTRITION_ONLY",
+        "Nutrition Only": "NUTRITION_ONLY",
+        "Nutrition Mastery Program": "NUTRITION_ONLY",
+        "Nutrition & Training Program": "NUTRITION_TRAINING", 
+        "Nutrition & Training": "NUTRITION_TRAINING",
+        "Self-Led Training Program": "SELF_LED_TRAINING",
+        "Self-Led Training": "SELF_LED_TRAINING",
+        "Trainer Feedback Program": "TRAINER_FEEDBACK",
+        "Trainer Feedback": "TRAINER_FEEDBACK",
+        "One-Time Macros Calculation": "ONE_TIME_MACROS",
+        "SHRED Challenge": "SHRED_CHALLENGE",
+        "SHRED with JMEFit": "SHRED_CHALLENGE"
+      };
+      
+      // Generate unique ID based on product name and billing interval
+      const normalizedName = item.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      const uniqueId = `${normalizedName}-${billingInterval}`;
+      
+      // Create a new item with the correct billing interval
+      const newItem = {
+        ...item,
+        id: uniqueId,
+        billingInterval,
+        yearlyDiscountApplied: billingInterval === 'year'
+      };
+      
+      // Get the product key from the normalized name
+      let productKey = productNameMap[item.name];
+      let matchMethod = "exact match";
+      
+      // If not found by exact name, try matching with partial name
+      if (!productKey) {
+        matchMethod = "partial match";
+        // Try to find by partial name match
+        const itemNameLower = item.name.toLowerCase();
+        if (itemNameLower.includes('nutrition only') || itemNameLower.includes('nutrition mastery')) {
+          productKey = "NUTRITION_ONLY";
+        } else if (itemNameLower.includes('nutrition & training') || itemNameLower.includes('nutrition and training')) {
+          productKey = "NUTRITION_TRAINING";
+        } else if (itemNameLower.includes('self-led') || itemNameLower.includes('self led')) {
+          productKey = "SELF_LED_TRAINING";
+        } else if (itemNameLower.includes('trainer feedback')) {
+          productKey = "TRAINER_FEEDBACK";
+        } else if (itemNameLower.includes('macros')) {
+          productKey = "ONE_TIME_MACROS";
+        } else if (itemNameLower.includes('shred')) {
+          productKey = "SHRED_CHALLENGE";
+        }
+      }
+      
+      if (productKey) {
+        // Use centralized pricing
+        const intervalForPricing = billingInterval === 'one-time' ? undefined : billingInterval;
+        const priceAmount = getPriceAmount(productKey, intervalForPricing);
+        const priceId = getPriceId(productKey, intervalForPricing);
+        
+        newItem.price = priceAmount / 100; // Convert from cents to dollars
+        newItem.stripe_price_id = priceId;
+        console.log(`Using centralized pricing for ${item.name}: $${newItem.price} (${matchMethod} to ${productKey})`);
+      } else {
+        // Fallback to Supabase lookup if not in centralized config
+        console.warn(`Product ${item.name} not found in centralized config, attempting Supabase lookup`);
+        
+        const { data: priceData, error } = await supabase
+          .from('prices')
+          .select('*, products(*)')
+          .eq('active', true);
+        
+        if (error) throw error;
+        
+        // Find matching price in Supabase data with enhanced matching
+        const matchingPrice = priceData.find(p => {
           const normalizeString = (str: string): string => {
             return str.toLowerCase()
               .replace(/\s+program\b/gi, '')
-              .replace(/\b(nutrition|only|training|led|self|feedback|trainer)\b/gi, match => match.toLowerCase())
+              .replace(/\b(nutrition|only|training|led|self|feedback|trainer|one-time|macros|shred)\b/gi, match => match.toLowerCase())
               .trim();
           };
           
           const normalizedProductName = normalizeString(p.products?.name || '');
           const normalizedItemName = normalizeString(item.name);
           
-          // Check if key identifying words match
           const keyWordsMatch = (
-            // Nutrition Only
             (p.products?.name?.toLowerCase().includes('nutrition only') && item.name.toLowerCase().includes('nutrition only')) ||
-            // Nutrition & Training
             (p.products?.name?.toLowerCase().includes('nutrition & training') && item.name.toLowerCase().includes('nutrition')) ||
-            // Self-Led Training
             (p.products?.name?.toLowerCase().includes('self-led') && item.name.toLowerCase().includes('self-led')) ||
-            // Trainer Feedback
             (p.products?.name?.toLowerCase().includes('trainer feedback') && item.name.toLowerCase().includes('trainer feedback')) ||
-            // One-Time Macros
             (p.products?.name?.toLowerCase().includes('macros') && item.name.toLowerCase().includes('macros')) ||
-            // SHRED
             (p.products?.name?.toLowerCase().includes('shred') && item.name.toLowerCase().includes('shred'))
           );
           
-          // Check for more general partial matches if no key word matches
           const fallbackPartialMatch = (
             normalizedProductName.includes(normalizedItemName) ||
             normalizedItemName.includes(normalizedProductName)
           );
           
-          // Check if interval matches the requested billing interval
-          const intervalMatches = p.interval === billingInterval;
-          
-          // For one-time products, don't strictly require interval match
           const isOneTimeProduct = (
             item.name.toLowerCase().includes('one-time') || 
             item.name.toLowerCase().includes('shred')
           );
           
           const isIntervalMatch = isOneTimeProduct ? 
-            (p.interval === 'one-time' || intervalMatches) : 
-            intervalMatches;
-          
-          console.log(
-            `Checking price: ${p.stripe_price_id} - ${p.products?.name} (${p.interval}) - ` +
-            `Key words match: ${keyWordsMatch}, Fallback match: ${fallbackPartialMatch}, ` +
-            `Interval match: ${isIntervalMatch}, Amount: ${p.unit_amount/100}`
-          );
+            (p.interval === 'one-time' || p.interval === billingInterval) : 
+            p.interval === billingInterval;
           
           return (keyWordsMatch || fallbackPartialMatch) && isIntervalMatch;
         });
-      }
-      
-      // Create a new item with the correct billing interval
-      const newItem = {
-        ...item,
-        billingInterval,
-        yearlyDiscountApplied: billingInterval === 'year'
-      };
-      
-      // Force SHRED Challenge price to always be $297.00
-      if (item.name.includes('SHRED')) {
-        newItem.price = 297.00;
-        console.log('Forcing SHRED Challenge price to $297.00');
-      }
-      
-      // Use price from Supabase if available, otherwise use the provided price
-      if (matchingPrice) {
-        newItem.price = matchingPrice.unit_amount / 100; // Convert from cents
-        newItem.stripe_price_id = matchingPrice.stripe_price_id;
-        console.log(`Using Supabase price for ${item.name}: $${newItem.price}`);
-      } else {
-        // If no matching price found in Supabase, use the fallback price from the item
-        console.warn(`No price found in database for ${item.name} with interval ${billingInterval}, using fallback price: $${item.price}`);
         
-        // Make sure we have a valid price
-        if (typeof item.price !== 'number' || isNaN(item.price)) {
-          // Use hardcoded fallback prices based on product name
-          if (item.name.includes('One-Time Macros')) {
-            newItem.price = 99.00;
-          } else if (item.name.includes('SHRED')) {
-            newItem.price = 297.00;
-          } else if (item.name.includes('Nutrition Only')) {
-            newItem.price = billingInterval === 'month' ? 179.00 : 1718.40;
-          } else if (item.name.includes('Nutrition & Training')) {
-            newItem.price = billingInterval === 'month' ? 249.00 : 2390.40;
-          } else if (item.name.includes('Self-Led Training')) {
-            newItem.price = billingInterval === 'month' ? 24.99 : 239.90;
-          } else if (item.name.includes('Trainer Feedback')) {
-            newItem.price = billingInterval === 'month' ? 49.99 : 431.90;
-          } else {
-            newItem.price = 0;
-          }
-          console.log(`Using hardcoded fallback price for ${item.name}: $${newItem.price}`);
+        if (matchingPrice) {
+          newItem.price = matchingPrice.unit_amount / 100;
+          newItem.stripe_price_id = matchingPrice.stripe_price_id;
+          console.log(`Using Supabase price for ${item.name}: $${newItem.price}`);
+        } else {
+          console.warn(`No matching price found for ${item.name}, using provided price: $${item.price}`);
         }
       }
       
@@ -187,159 +203,101 @@ export const useCartStore = create(
         };
       });
     } catch (err) {
-      console.error('Error adding item with Supabase prices:', err);
-      toast.error('Failed to add item. Price data could not be retrieved from the database.');
-      // Re-throw the error so the UI can handle it
+      console.error('Error adding item with pricing:', err);
       throw err;
     }
   },
-  updateItemInterval: async (id, interval) => {
-    // First get the current state to find the item
-    const currentState = get();
-    const itemToUpdate = currentState.items.find((item: CartItem) => item.id === id);
-    
-    if (!itemToUpdate) return;
-    
+  updateItemInterval: (itemId: string, newInterval: 'month' | 'year' | 'one-time') => {
     try {
-      // Get the product and its prices from Supabase
-      let query = supabase
-        .from('prices')
-        .select('*, products(*)')
-        .eq('active', true);
-      
-      // Try to find the product by name or by stripe_product_id
-      const { data: priceData, error } = await query;
-      
-      if (error) throw error;
-      
-      console.log('Available prices for interval update:', priceData);
-      console.log('Looking to update product:', itemToUpdate.name, 'to interval:', interval);
-      
-      // First, try an exact match
-      let matchingPrice = priceData.find(p => {
-        const exactMatch = p.products?.name === itemToUpdate.name && p.interval === interval;
-        if (exactMatch) {
-          console.log(`Found exact match for ${itemToUpdate.name} with interval ${interval}`);
-        }
-        return exactMatch;
-      });
-
-      // If no exact match, try partial name matching
-      if (!matchingPrice) {
-        console.log(`No exact match found for interval update, trying partial matches for ${itemToUpdate.name} with interval ${interval}`);
-        
-        matchingPrice = priceData.find(p => {
-          // Check if product names partially match (case insensitive match in either direction)
-          // Normalize both strings for comparison: remove 'Program', extra spaces, etc.
-          const normalizeString = (str: string): string => {
-            return str.toLowerCase()
-              .replace(/\s+program\b/gi, '')
-              .replace(/\b(nutrition|only|training|led|self|feedback|trainer)\b/gi, match => match.toLowerCase())
-              .trim();
-          };
-          
-          const normalizedProductName = normalizeString(p.products?.name || '');
-          const normalizedItemName = normalizeString(itemToUpdate.name);
-          
-          // Check if key identifying words match
-          const keyWordsMatch = (
-            // Nutrition Only
-            (p.products?.name?.toLowerCase().includes('nutrition only') && itemToUpdate.name.toLowerCase().includes('nutrition only')) ||
-            // Nutrition & Training
-            (p.products?.name?.toLowerCase().includes('nutrition & training') && itemToUpdate.name.toLowerCase().includes('nutrition')) ||
-            // Self-Led Training
-            (p.products?.name?.toLowerCase().includes('self-led') && itemToUpdate.name.toLowerCase().includes('self-led')) ||
-            // Trainer Feedback
-            (p.products?.name?.toLowerCase().includes('trainer feedback') && itemToUpdate.name.toLowerCase().includes('trainer feedback')) ||
-            // One-Time Macros
-            (p.products?.name?.toLowerCase().includes('macros') && itemToUpdate.name.toLowerCase().includes('macros')) ||
-            // SHRED
-            (p.products?.name?.toLowerCase().includes('shred') && itemToUpdate.name.toLowerCase().includes('shred'))
-          );
-          
-          // Check for more general partial matches if no key word matches
-          const fallbackPartialMatch = (
-            normalizedProductName.includes(normalizedItemName) ||
-            normalizedItemName.includes(normalizedProductName)
-          );
-          
-          // Check if interval matches the requested billing interval
-          const intervalMatches = p.interval === interval;
-          
-          // For one-time products, don't strictly require interval match
-          const isOneTimeProduct = (
-            itemToUpdate.name.toLowerCase().includes('one-time') || 
-            itemToUpdate.name.toLowerCase().includes('shred')
-          );
-          
-          const isIntervalMatch = isOneTimeProduct ? 
-            (p.interval === 'one-time' || intervalMatches) : 
-            intervalMatches;
-          
-          console.log(
-            `Checking price for update: ${p.stripe_price_id} - ${p.products?.name} (${p.interval}) - ` +
-            `Key words match: ${keyWordsMatch}, Fallback match: ${fallbackPartialMatch}, ` +
-            `Interval match: ${isIntervalMatch}, Amount: ${p.unit_amount/100}`
-          );
-          
-          return (keyWordsMatch || fallbackPartialMatch) && isIntervalMatch;
-        });
-      }
-      
-      // Update the state with the new pricing information
       set((state) => {
+        const itemToUpdate = state.items.find(item => item.id === itemId);
+        if (!itemToUpdate) {
+          return state; // Item not found, no change
+        }
+        
+        // Don't allow changing billing interval for one-time products
+        if (itemToUpdate.name.includes('SHRED') || 
+            itemToUpdate.name.includes('One-Time') || 
+            itemToUpdate.name.includes('Macros Calculation')) {
+          return state;
+        }
+        
+        // Check if changing to newInterval would create a duplicate
+        const wouldCreateDuplicate = state.items.some(item => {
+          if (item.id === itemId) return false; // Skip the current item
+          const normalizeName = (name: string) => name.toLowerCase().replace(/\s+program\s*$/i, '').trim();
+          return normalizeName(item.name) === normalizeName(itemToUpdate.name) && 
+                 item.billingInterval === newInterval;
+        });
+        
+        if (wouldCreateDuplicate) {
+          // Prevent creating duplicate, but don't show notification
+          return state;
+        }
+        
         const newItems = state.items.map(item => {
-          if (item.id === id) {
-            // Get price from Supabase if available, otherwise use default values
-            let updatedPrice = item.price; // Default: keep existing price
-            let newStripePriceId = item.stripe_price_id;
+          if (item.id === itemId) {
+            // Map product names to STRIPE_PRODUCTS keys
+            const productNameMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+              "Nutrition Only Program": "NUTRITION_ONLY",
+              "Nutrition Only": "NUTRITION_ONLY",
+              "Nutrition & Training Program": "NUTRITION_TRAINING",
+              "Nutrition & Training": "NUTRITION_TRAINING", 
+              "Self-Led Training Program": "SELF_LED_TRAINING",
+              "Self-Led Training": "SELF_LED_TRAINING",
+              "Trainer Feedback Program": "TRAINER_FEEDBACK",
+              "Trainer Feedback": "TRAINER_FEEDBACK"
+            };
             
-            if (matchingPrice) {
-              updatedPrice = matchingPrice.unit_amount / 100; // Convert from cents
-              newStripePriceId = matchingPrice.stripe_price_id;
-              console.log(`Using Supabase price for ${item.name}: $${updatedPrice}`);
-            } else {
-              // If no matching price found in Supabase, use fallback prices
-              console.warn(`No price found in database for ${item.name} with interval ${interval}, using fallback price`);
+            const productKey = productNameMap[item.name];
+            let newPrice = item.price;
+            let stripePriceId = item.stripe_price_id;
+            
+            // Generate new unique ID for the updated billing interval
+            const normalizedName = item.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+            const newId = `${normalizedName}-${newInterval}`;
+            
+            if (productKey) {
+              // Use centralized pricing
+              const intervalForPricing = newInterval === 'one-time' ? undefined : newInterval;
+              const priceAmount = getPriceAmount(productKey, intervalForPricing);
+              const priceId = getPriceId(productKey, intervalForPricing);
               
-              // Use hardcoded fallback prices based on product name
-              if (item.name.includes('One-Time Macros')) {
-                updatedPrice = 99.00;
-              } else if (item.name.includes('SHRED')) {
-                updatedPrice = 297.00;
-              } else if (item.name.includes('Nutrition Only')) {
-                updatedPrice = interval === 'month' ? 179.00 : 1718.40;
+              newPrice = priceAmount / 100; // Convert from cents to dollars
+              stripePriceId = priceId;
+            } else {
+              // Fallback to hardcoded pricing if not in centralized config
+              
+              if (item.name.includes('Nutrition Only')) {
+                newPrice = newInterval === 'month' ? 179.00 : 1718.40;
               } else if (item.name.includes('Nutrition & Training')) {
-                updatedPrice = interval === 'month' ? 249.00 : 2390.40;
+                newPrice = newInterval === 'month' ? 249.00 : 2390.40;
               } else if (item.name.includes('Self-Led Training')) {
-                updatedPrice = interval === 'month' ? 24.99 : 239.90;
+                newPrice = newInterval === 'month' ? 24.99 : 239.90;
               } else if (item.name.includes('Trainer Feedback')) {
-                updatedPrice = interval === 'month' ? 49.99 : 431.90;
+                newPrice = newInterval === 'month' ? 49.99 : 431.90;
               }
-              console.log(`Using hardcoded fallback price for ${item.name}: $${updatedPrice}`);
             }
             
             return {
               ...item,
-              billingInterval: interval,
-              yearlyDiscountApplied: interval === 'year',
-              price: updatedPrice,
-              stripe_price_id: newStripePriceId
+              id: newId, // Update ID to reflect new billing interval
+              billingInterval: newInterval,
+              price: newPrice,
+              stripe_price_id: stripePriceId,
+              yearlyDiscountApplied: newInterval === 'year'
             };
           }
           return item;
         });
-        
+
         return {
           items: newItems,
           total: newItems.reduce((sum, item) => sum + item.price, 0)
         };
       });
-    } catch (err) {
-      console.error('Error updating item interval:', err);
-      toast.error('Failed to update billing interval. Price data could not be retrieved from the database.');
-      // Re-throw the error so the UI can handle it
-      throw err;
+    } catch (error) {
+      console.error('Error updating item interval:', error);
     }
   },
   removeItem: (id) => set((state) => {
