@@ -80,7 +80,7 @@ function Home() {
             Get started with one of our monthly subscription app-based or standalone training programs below:
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            <Link to="/shred-waitlist" className="group relative aspect-video overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <Link to="/programs#shred-challenge" className="group relative aspect-video overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
               <img 
                 src="/unsplash-images/fitness-woman-1.jpg"
                 alt="SHRED Challenge"
