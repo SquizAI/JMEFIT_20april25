@@ -47,12 +47,12 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 17900, // $179 in cents
-        id: 'price_nutrition_monthly'
+        amount: 17900, // $179 in cents - MATCHES STRIPE
+        id: 'price_1RPb3HG00IiCtQkDK6blELBN'
       },
       year: {
-        amount: 171840, // $1718.40 in cents (20% discount)
-        id: 'price_nutrition_yearly',
+        amount: 171840, // $1718.40 in cents - MATCHES STRIPE
+        id: 'price_1RPb3NG00IiCtQkDRzrvSEOk',
         savings: 20
       }
     }
@@ -69,12 +69,12 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 24900, // $249 in cents
-        id: 'price_nutrition_training_monthly'
+        amount: 24900, // $249 in cents - MATCHES STRIPE
+        id: 'price_1RPq65G00IiCtQkDvWPGX09T'
       },
       year: {
-        amount: 239040, // $2390.40 in cents (20% discount)
-        id: 'price_nutrition_training_yearly',
+        amount: 239040, // $2390.40 in cents - MATCHES STRIPE
+        id: 'price_1RPq60G00IiCtQkDhEj1vQBr',
         savings: 20
       }
     }
@@ -90,12 +90,12 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 2499, // $24.99 in cents
-        id: 'price_selfled_monthly'
+        amount: 2499, // $24.99 in cents - MATCHES STRIPE
+        id: 'price_1RPb3rG00IiCtQkDWSMYE6VP'
       },
       year: {
-        amount: 23990, // $239.90 in cents (20% discount)
-        id: 'price_selfled_yearly',
+        amount: 23990, // $239.90 in cents - MATCHES STRIPE
+        id: 'price_1RPb3wG00IiCtQkDGn5dPucz',
         savings: 20
       }
     }
@@ -111,12 +111,12 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 4999, // $49.99 in cents
-        id: 'price_feedback_monthly'
+        amount: 4999, // $49.99 in cents - MATCHES STRIPE
+        id: 'price_1RPpiBG00IiCtQkDBBgajsyo'
       },
       year: {
-        amount: 43190, // $431.90 in cents (20% discount)
-        id: 'price_feedback_yearly',
+        amount: 43190, // $431.90 in cents - MATCHES STRIPE
+        id: 'price_1RPb4CG00IiCtQkDWk5SOKce',
         savings: 20
       }
     }
@@ -132,8 +132,8 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       one_time: {
-        amount: 29700, // $297 in cents
-        id: 'price_shred_onetime'
+        amount: 29700, // $297 in cents - MATCHES STRIPE
+        id: 'price_1RPq5RG00IiCtQkD94kNa9AQ'
       }
     }
   },
@@ -148,8 +148,8 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       one_time: {
-        amount: 9900, // $99 in cents
-        id: 'price_macros_onetime'
+        amount: 9900, // $99 in cents - MATCHES STRIPE
+        id: 'price_1RPq5aG00IiCtQkD30r2Csua'
       }
     }
   }

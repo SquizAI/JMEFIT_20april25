@@ -489,7 +489,7 @@ function Programs() {
               </div>
               
               <div className="bg-cyan-50 p-5 rounded-xl mb-8">
-                <div className="text-xl font-bold text-gray-800 mb-2">$149 <span className="text-base font-normal text-gray-600">(minimum 3 month commitment, billed monthly)</span></div>
+                <div className="text-xl font-bold text-gray-800 mb-2">$179 <span className="text-base font-normal text-gray-600">(minimum 3 month commitment, billed monthly)</span></div>
               </div>
               
               <div className="mb-8">
@@ -615,7 +615,7 @@ function Programs() {
               </div>
               
               <div className="bg-purple-50 p-5 rounded-xl mb-8">
-                <div className="text-xl font-bold text-gray-800 mb-2">$199 <span className="text-base font-normal text-gray-600">(minimum 3 month commitment, billed monthly)</span></div>
+                <div className="text-xl font-bold text-gray-800 mb-2">$249 <span className="text-base font-normal text-gray-600">(minimum 3 month commitment, billed monthly)</span></div>
               </div>
               
               <div className="mb-8">

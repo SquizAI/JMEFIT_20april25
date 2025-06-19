@@ -128,10 +128,10 @@ const getJMEFitPrograms = () => {
   const safeFormatPrice = (productKey: string, interval?: string): number => {
     // Use actual pricing from your website
     const fallbacks: Record<string, Record<string, number>> = {
-      'nutrition-only': { 'month': 179, 'year': 143.20 * 12 }, // $143.20/month for yearly
-      'nutrition-training': { 'month': 249, 'year': 199.20 * 12 }, // $199.20/month for yearly
-      'self-led-training': { 'month': 24.99, 'year': 19.99 * 12 }, // $19.99/month for yearly
-      'trainer-feedback': { 'month': 49.99, 'year': 39.99 * 12 }, // $39.99/month for yearly
+      'nutrition-only': { 'month': 179, 'year': 1718.40 }, // CORRECT: $179/month, $1718.40/year
+      'nutrition-training': { 'month': 249, 'year': 2390.40 }, // CORRECT: $249/month, $2390.40/year
+      'self-led-training': { 'month': 24.99, 'year': 239.90 }, // CORRECT: $24.99/month, $239.90/year
+      'trainer-feedback': { 'month': 49.99, 'year': 431.90 }, // CORRECT: $49.99/month, $431.90/year
       'one-time-macros': { 'default': 99 },
       'shred-challenge': { 'default': 297 }
     };
@@ -414,7 +414,7 @@ export const CACHED_RESPONSES: Record<string, ChatResponse> = {
       popular: true,
       price: {
         monthly: 249,
-        yearly: 199.20 * 12
+        yearly: 2390.40
       },
       description: "Complete transformation package with nutrition and custom workouts tailored to your schedule and goals.",
       features: [
