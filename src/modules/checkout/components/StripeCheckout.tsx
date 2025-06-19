@@ -43,9 +43,30 @@ export default function StripeCheckout() {
     if (items.length > 0) {
       setIsRedirecting(true);
       try {
-        // We're using the unified mixed cart approach - always use create-checkout
-        // This endpoint supports both subscription and one-time products in the same cart
-        const endpoint = '/.netlify/functions/create-checkout';
+        // Determine the correct endpoint based on cart contents
+        const hasSubscriptions = items.some(item => 
+          item.billingInterval === 'month' || item.billingInterval === 'year'
+        );
+        
+        const hasOneTimeItems = items.some(item => 
+          !item.billingInterval || 
+          item.billingInterval === 'one-time' ||
+          item.name.includes('One-Time') ||
+          item.name.includes('SHRED')
+        );
+        
+        // Choose the appropriate endpoint
+        let endpoint;
+        if (hasSubscriptions && hasOneTimeItems) {
+          // Mixed cart - for now, prioritize subscriptions
+          endpoint = '/.netlify/functions/create-subscription-checkout';
+        } else if (hasSubscriptions) {
+          // Only subscription items
+          endpoint = '/.netlify/functions/create-subscription-checkout';
+        } else {
+          // Only one-time items
+          endpoint = '/.netlify/functions/create-checkout';
+        }
 
         // Map items and ensure they have valid Stripe price IDs
         const itemsForCheckout = items
