@@ -36,7 +36,7 @@ type ProductCatalog = {
 
 // Define product catalog with pricing information
 export const STRIPE_PRODUCTS: ProductCatalog = {
-  'nutrition-only': {
+  'NUTRITION_ONLY': {
     name: 'Nutrition Only',
     description: 'Custom nutrition plan tailored to your goals',
     features: [
@@ -47,18 +47,18 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 9900, // in cents
+        amount: 17900, // $179 in cents
         id: 'price_nutrition_monthly'
       },
       year: {
-        amount: 99900, // in cents
+        amount: 171840, // $1718.40 in cents (20% discount)
         id: 'price_nutrition_yearly',
-        savings: 19
+        savings: 20
       }
     }
   },
-  'nutrition-training': {
-    name: 'Complete Transformation Bundle',
+  'NUTRITION_TRAINING': {
+    name: 'Nutrition & Training Program',
     description: 'Our most popular program includes nutrition and training',
     features: [
       'Personalized nutrition plan',
@@ -69,18 +69,18 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 19900, // in cents
+        amount: 24900, // $249 in cents
         id: 'price_nutrition_training_monthly'
       },
       year: {
-        amount: 199900, // in cents
+        amount: 239040, // $2390.40 in cents (20% discount)
         id: 'price_nutrition_training_yearly',
-        savings: 17
+        savings: 20
       }
     }
   },
-  'self-led-training': {
-    name: 'Self-Led Training',
+  'SELF_LED_TRAINING': {
+    name: 'Self-Led Training Program',
     description: 'Workout plans you can follow on your own',
     features: [
       'Workout programming based on goals',
@@ -90,18 +90,18 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 4900, // in cents
+        amount: 2499, // $24.99 in cents
         id: 'price_selfled_monthly'
       },
       year: {
-        amount: 49900, // in cents
+        amount: 23990, // $239.90 in cents (20% discount)
         id: 'price_selfled_yearly',
-        savings: 15
+        savings: 20
       }
     }
   },
-  'trainer-feedback': {
-    name: 'Trainer Feedback',
+  'TRAINER_FEEDBACK': {
+    name: 'Trainer Feedback Program',
     description: 'Get personalized coaching feedback on your workouts',
     features: [
       'Form check videos',
@@ -111,17 +111,17 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       month: {
-        amount: 14900, // in cents
+        amount: 4999, // $49.99 in cents
         id: 'price_feedback_monthly'
       },
       year: {
-        amount: 149900, // in cents
+        amount: 43190, // $431.90 in cents (20% discount)
         id: 'price_feedback_yearly',
-        savings: 16
+        savings: 20
       }
     }
   },
-  'shred-challenge': {
+  'SHRED_CHALLENGE': {
     name: 'SHRED Challenge',
     description: '8-week program to lose fat and build lean muscle',
     features: [
@@ -132,12 +132,12 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       one_time: {
-        amount: 9900, // in cents
+        amount: 29700, // $297 in cents
         id: 'price_shred_onetime'
       }
     }
   },
-  'one-time-macros': {
+  'ONE_TIME_MACROS': {
     name: 'One-Time Macros Calculation',
     description: 'Get your customized macro targets based on your goals',
     features: [
@@ -148,7 +148,7 @@ export const STRIPE_PRODUCTS: ProductCatalog = {
     ],
     prices: {
       one_time: {
-        amount: 2900, // in cents
+        amount: 9900, // $99 in cents
         id: 'price_macros_onetime'
       }
     }

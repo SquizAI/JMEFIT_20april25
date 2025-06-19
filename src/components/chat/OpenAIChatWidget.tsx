@@ -122,6 +122,9 @@ const OpenAIChatWidget: React.FC = () => {
   // Debounce protection for button clicks
   const [isProcessingClick, setIsProcessingClick] = useState<boolean>(false);
   
+  // Add fullscreen state for desktop
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  
   // Lead capture state
   const [showLeadCapture, setShowLeadCapture] = useState<boolean>(false);
   const [leadCaptureType, setLeadCaptureType] = useState<'email' | 'phone'>('email');
@@ -255,6 +258,8 @@ const OpenAIChatWidget: React.FC = () => {
   
   // Handle lead capture responses
   const handleLeadCaptureResponse = (response: ChatResponse) => {
+    if (!response || !response.data) return;
+    
     setLeadCaptureReason(response.data?.reason || 'Get personalized fitness tips and program updates');
     
     // Default to email if not specified
@@ -374,6 +379,13 @@ const OpenAIChatWidget: React.FC = () => {
     if (!isOpen) {
       setTimeout(() => scrollToBottom(), 300);
     }
+  };
+
+  // Handle fullscreen toggle for desktop
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
+    // Scroll to bottom after fullscreen toggle
+    setTimeout(() => scrollToBottom(), 300);
   };
   
   // Handle user selecting a goal through quick replies - improved to implement our funnel
@@ -1871,24 +1883,43 @@ const OpenAIChatWidget: React.FC = () => {
 
   return (
     <>
-      {/* Chat Widget - Desktop Version (Fixed Size Chat Module) */}
+      {/* Chat Widget - Desktop: Sticky at footer with fullscreen option, Mobile: Full screen */}
       {isOpen && (
         <div 
-          className="fixed z-[100] bottom-0 right-0 sm:right-6 sm:bottom-20 sm:left-auto w-full sm:w-[400px] bg-white rounded-none sm:rounded-t-xl shadow-2xl flex flex-col overflow-hidden border-t sm:border border-gray-200"
+          className={`fixed z-[100] ${
+            // Mobile: Full screen from top
+            'inset-0 top-[60px] sm:inset-auto ' +
+            // Desktop: Sticky at bottom with conditional fullscreen
+            (isFullscreen 
+              ? 'sm:inset-0 sm:top-0' // Fullscreen on desktop
+              : 'sm:bottom-0 sm:right-0'  // Sticky at footer on desktop
+            )
+          } w-full bg-white shadow-2xl flex flex-col overflow-hidden border-t sm:border border-gray-200`}
           style={{  
-            height: 'calc(var(--vh, 1vh) * 100)', // Full height on mobile only
-            maxHeight: 'calc(var(--vh, 1vh) * 100)',
-            maxWidth: '100%',
-            width: '100%',
-            // Separate styles for desktop with standard CSS, not media queries
-            ...(window.innerWidth >= 640 ? {
-              height: '550px',
+            // Height calculation based on device and fullscreen state
+            ...(window.innerWidth >= 640 ? (isFullscreen ? {
+              // Desktop Fullscreen: Full height and 60% width on right side
+              height: '100vh',
+              maxHeight: '100vh',
+              width: '60%',
+              maxWidth: '60%',
+              borderRadius: '0'
+            } : {
+              // Desktop Normal: Bigger chat area, sticky at footer
+              height: '70vh',
               maxHeight: '70vh',
-              width: '400px'
-            } : {})
+              width: '480px',
+              maxWidth: '480px',
+              borderTopLeftRadius: '1rem',
+              borderTopRightRadius: '1rem'
+            }) : {
+              // Mobile: Full height minus header
+              height: 'calc(var(--vh, 1vh) * 100 - 60px)',
+              maxHeight: 'calc(var(--vh, 1vh) * 100 - 60px)',
+            })
           }}
         >
-          {/* Header */}
+          {/* Header with fullscreen toggle */}
           <div className="bg-gradient-to-r from-jme-purple to-jme-cyan p-4 flex justify-between items-center sticky top-0 z-10 shadow-md">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -1899,13 +1930,32 @@ const OpenAIChatWidget: React.FC = () => {
                 <p className="text-white/80 text-sm">Your fitness journey, simplified</p>
               </div>
             </div>
-            <button 
-              onClick={handleToggleChat}
-              className="text-white hover:bg-white/20 rounded-full p-1.5 transition-colors"
-              aria-label="Close chat"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Fullscreen toggle button (desktop only) */}
+              <button 
+                onClick={handleToggleFullscreen}
+                className="hidden sm:flex text-white hover:bg-white/20 rounded-full p-1.5 transition-colors"
+                aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+              >
+                {isFullscreen ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                )}
+              </button>
+              <button 
+                onClick={handleToggleChat}
+                className="text-white hover:bg-white/20 rounded-full p-1.5 transition-colors"
+                aria-label="Close chat"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
           
           {/* Onboarding Progress Bar for First-Time Users */}
@@ -1924,7 +1974,7 @@ const OpenAIChatWidget: React.FC = () => {
             </div>
           )}
           
-          {/* Messages Area with more space - increase padding-bottom to ensure visibility above buttons */}
+          {/* Messages Area with improved space for larger chat */}
           <div 
             className="flex-1 overflow-y-auto p-4 space-y-4 bg-white"
             style={{ 
@@ -1932,7 +1982,7 @@ const OpenAIChatWidget: React.FC = () => {
               overscrollBehavior: 'contain',
               WebkitOverflowScrolling: 'touch', // Safari smooth scrolling
               transform: 'translateZ(0)', // Force GPU acceleration for smoother scrolling
-              paddingBottom: '120px' // Increased padding to ensure messages aren't hidden behind buttons
+              paddingBottom: isFullscreen ? '140px' : '120px' // More padding for fullscreen
             }}
           >
             {messages.map((message, index) => (

@@ -82,7 +82,7 @@ function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             <Link to="/programs#shred-challenge" className="group relative aspect-video overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
               <img 
-                src="/unsplash-images/female-fitness-shred.jpg"
+                src="/unsplash-images/woman-fitness-workout.jpg"
                 alt="SHRED Challenge - Female Fitness Training"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 transform-gpu"
                 loading="lazy"
