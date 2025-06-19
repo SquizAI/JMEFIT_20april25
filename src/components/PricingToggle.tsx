@@ -1,4 +1,3 @@
-
 interface PricingToggleProps {
   interval: 'month' | 'year';
   onChange: (interval: 'month' | 'year') => void;
@@ -60,8 +59,8 @@ export default function PricingToggle({ interval, onChange, monthlyPrice, classN
 
         <div className="flex-1 relative">
           {interval === 'year' && (
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full z-20">
-              BEST VALUE
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full z-20 shadow-lg border border-green-400">
+              <span className="relative">BEST VALUE</span>
             </div>
           )}
           <button 
