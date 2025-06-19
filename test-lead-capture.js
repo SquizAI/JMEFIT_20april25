@@ -35,7 +35,7 @@ console.log('📋 Test data:', testLeadData);
     console.log('✅ Direct lead capture system is integrated!');
     console.log('🎯 The chatbot now captures leads directly to Supabase');
     console.log('📧 Email automation triggers automatically');
-    console.log('🚫 No more n8n dependency!');
+    console.log('🚫 No external dependencies!');
     
     console.log('\n📊 Lead capture flow:');
     console.log('1. User interacts with chatbot');

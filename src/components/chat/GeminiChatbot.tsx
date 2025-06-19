@@ -19,10 +19,10 @@ import {
 } from './RichResponses';
 import { ChatbotFunctionCallUI } from './ChatbotUI';
 
-// NEW: Import direct lead capture instead of n8n webhook
+// Import direct lead capture 
 import { captureLeadDirectly, extractLeadData, type UserPreferences } from '../../lib/lead-capture';
 
-// Lead capture function (now using direct Supabase instead of n8n)
+// Lead capture function (using direct Supabase integration)
 const captureLeadDirect = async (leadData: any) => {
   try {
     console.log('🎯 Capturing lead directly to Supabase:', leadData);
