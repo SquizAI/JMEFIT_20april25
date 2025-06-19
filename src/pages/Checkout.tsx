@@ -310,11 +310,31 @@ function Checkout() {
         return item;
       });
       
-      // Production code - no debug logs
+      // Determine the correct endpoint based on cart contents
+      const hasSubscriptions = items.some(item => 
+        item.billingInterval === 'month' || item.billingInterval === 'year'
+      );
       
-      // Using the unified mixed cart approach for all checkouts
-    // This single endpoint handles both subscription and one-time products
-    const endpoint = '/.netlify/functions/create-checkout';
+      const hasOneTimeItems = items.some(item => 
+        !item.billingInterval || 
+        item.billingInterval === 'one-time' ||
+        item.name.includes('One-Time') ||
+        item.name.includes('SHRED')
+      );
+      
+      // Choose the appropriate endpoint
+      let endpoint;
+      if (hasSubscriptions && hasOneTimeItems) {
+        // Mixed cart - for now, prioritize subscriptions and show a message
+        endpoint = '/.netlify/functions/create-subscription-checkout';
+        toast('Processing subscription items first. One-time items will be handled separately.', { icon: 'ℹ️' });
+      } else if (hasSubscriptions) {
+        // Only subscription items
+        endpoint = '/.netlify/functions/create-subscription-checkout';
+      } else {
+        // Only one-time items
+        endpoint = '/.netlify/functions/create-checkout';
+      }
       
       // Direct call to serverless function
       const response = await fetch(endpoint, {
@@ -671,7 +691,7 @@ function Checkout() {
                             // Check if we have a mixed cart (both subscription and one-time items)
                             if (hasSubscriptionItems(items) && hasOneTimeItems(items)) {
                               // Show a toast notification about processing as separate transactions
-                              toast.success('Your cart has both subscription and one-time items. Processing subscription items first.');
+                              toast('Processing subscription items first. One-time items will be handled separately.', { icon: 'ℹ️' });
                               
                               // Get subscription items only
                               const { subscriptionItems } = handleMixedCart(items);
