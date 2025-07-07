@@ -4,6 +4,7 @@ import { Apple, CheckCircle2, Scale, Info, X } from 'lucide-react';
 import { useCartStore } from '../store/cart';
 import PricingToggle from '../components/PricingToggle';
 import toast from 'react-hot-toast';
+import { STRIPE_PRODUCTS, getPriceAmount, getPriceId } from '../lib/stripe-products';
 
 // Add keyframe animation for modal entry
 const modalEntryStyles = `
@@ -46,25 +47,59 @@ function NutritionPrograms() {
     nutritionTraining: 'year'
   });
 
-  const getPrice = (basePrice: number) => {
-    // Always calculate yearly price for cart
-    return basePrice * 12 * 0.8; // 20% discount for annual
+  // Standardized function to get correct price based on current display interval using Stripe products
+  const getCorrectPrice = (productName: string, programKey: keyof typeof displayIntervals) => {
+    const interval = displayIntervals[programKey];
+    
+    // Map product names to STRIPE_PRODUCTS keys
+    const productMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+      "Nutrition Only Program": "NUTRITION_ONLY",
+      "Nutrition Only": "NUTRITION_ONLY", 
+      "Nutrition & Training Program": "NUTRITION_TRAINING",
+      "Nutrition & Training": "NUTRITION_TRAINING",
+      "One-Time Macros Calculation": "ONE_TIME_MACROS"
+    };
+    
+    const productKey = productMap[productName];
+    if (!productKey) {
+      console.warn(`Unknown product: ${productName}`);
+      return 0;
+    }
+    
+    // Get price amount from centralized configuration
+    const amountInCents = getPriceAmount(productKey as string, interval as string);
+    return amountInCents / 100; // Convert from cents to dollars
   };
-
-  // We'll use the PricingToggle component to display prices
 
   const handleAddToCart = (program: { name: string; price: number; description: string }) => {
     // Check if this is a one-time product
     const isOneTimeProduct = program.name.includes('One-Time') || program.name.includes('Shred');
     
-    // Only set billing interval for subscription products
-    let billingInterval: 'month' | 'year' | undefined = undefined;
+    // Get the current interval for this program
+    let programKey: keyof typeof displayIntervals;
+    let interval: 'month' | 'year' | undefined = undefined;
     
     if (!isOneTimeProduct) {
-      // Get the current interval for this program
-      const programKey = program.name.includes("Nutrition Only") ? "nutritionOnly" : "nutritionTraining";
-      // Type assertion to ensure TypeScript knows this is a valid key
-      billingInterval = displayIntervals[programKey as keyof typeof displayIntervals];
+      if (program.name.includes("Nutrition Only")) {
+        programKey = "nutritionOnly";
+      } else {
+        programKey = "nutritionTraining";
+      }
+      interval = displayIntervals[programKey];
+    }
+    
+    // Map program names to STRIPE_PRODUCTS keys for getting the correct Stripe price ID
+    const productMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
+      "Nutrition Only Program": "NUTRITION_ONLY",
+      "Nutrition & Training Program": "NUTRITION_TRAINING",
+      "One-Time Macros Calculation": "ONE_TIME_MACROS"
+    };
+    
+    const productKey = productMap[program.name];
+    let stripePriceId = '';
+    
+    if (productKey) {
+      stripePriceId = getPriceId(productKey as string, isOneTimeProduct ? undefined : (interval as string));
     }
     
     addItem({
@@ -72,8 +107,8 @@ function NutritionPrograms() {
       name: program.name,
       price: program.price,
       description: program.description,
-      billingInterval: billingInterval,
-      yearlyDiscountApplied: billingInterval === 'year'
+      billingInterval: isOneTimeProduct ? 'one-time' : interval,
+      stripe_price_id: stripePriceId
     });
     
     toast.success('Added to cart!');
@@ -206,8 +241,8 @@ function NutritionPrograms() {
                   onClick={() => {
                     handleAddToCart({
                       name: "Nutrition & Training Program",
-                      price: getPrice(199),
-                      description: `Nutrition & Training Program (Annual) - Complete transformation package`
+                      price: getCorrectPrice("Nutrition & Training Program", "nutritionTraining"),
+                      description: `Nutrition & Training Program (${displayIntervals.nutritionTraining === 'month' ? 'Monthly' : 'Annual'}) - Complete transformation package`
                     });
                     setShowNutritionTrainingDetails(false);
                   }}
@@ -331,8 +366,8 @@ function NutritionPrograms() {
                   onClick={() => {
                     handleAddToCart({
                       name: "Nutrition Only Program",
-                      price: getPrice(149),
-                      description: `Nutrition Only Program (Annual) - Custom nutrition plan & support`
+                      price: getCorrectPrice("Nutrition Only Program", "nutritionOnly"),
+                      description: `Nutrition Only Program (${displayIntervals.nutritionOnly === 'month' ? 'Monthly' : 'Annual'}) - Custom nutrition plan & support`
                     });
                     setShowNutritionDetails(false);
                   }}
@@ -390,7 +425,7 @@ function NutritionPrograms() {
               </button>
               <PricingToggle
                 interval={displayIntervals.nutritionOnly}
-                monthlyPrice={149}
+                monthlyPrice={179}
                 onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, nutritionOnly: newInterval }))}
               />
             </div>
@@ -417,8 +452,8 @@ function NutritionPrograms() {
                 <button
                   onClick={() => handleAddToCart({
                     name: "Nutrition Only Program",
-                    price: getPrice(149),
-                    description: `Nutrition Only Program (Annual) - Custom nutrition plan & support`
+                    price: getCorrectPrice("Nutrition Only Program", "nutritionOnly"),
+                    description: `Nutrition Only Program (${displayIntervals.nutritionOnly === 'month' ? 'Monthly' : 'Annual'}) - Custom nutrition plan & support`
                   })}
                   className="program-button block w-full bg-gradient-to-r from-jme-cyan to-cyan-600 text-white"
                 >
@@ -449,7 +484,7 @@ function NutritionPrograms() {
               </button>
               <PricingToggle
                 interval={displayIntervals.nutritionTraining}
-                monthlyPrice={199}
+                monthlyPrice={249}
                 onChange={(newInterval) => setDisplayIntervals(prev => ({ ...prev, nutritionTraining: newInterval }))}
               />
             </div>
@@ -476,8 +511,8 @@ function NutritionPrograms() {
                 <button
                   onClick={() => handleAddToCart({
                     name: "Nutrition & Training Program",
-                    price: getPrice(199),
-                    description: `Nutrition & Training Program (Annual) - Complete transformation package`
+                    price: getCorrectPrice("Nutrition & Training Program", "nutritionTraining"),
+                    description: `Nutrition & Training Program (${displayIntervals.nutritionTraining === 'month' ? 'Monthly' : 'Annual'}) - Complete transformation package`
                   })}
                   className="program-button block w-full bg-gradient-to-r from-jme-purple to-purple-700 text-white"
                 >

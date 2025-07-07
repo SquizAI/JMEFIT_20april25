@@ -1,17 +1,10 @@
 import { loadStripe, Stripe as StripeClient } from '@stripe/stripe-js';
-import Stripe from 'stripe';
 
 // Client-side Stripe instance
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
 // Log if we're using the test environment
 console.log(`Using Stripe in ${import.meta.env.DEV ? 'TEST' : 'PRODUCTION'} mode`);
-
-// Server-side Stripe instance (for API calls)
-// @ts-ignore - Ignore type checking for apiVersion
-const serverStripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY || '', {
-  typescript: true,
-});
 
 /**
  * Get the client-side Stripe instance
@@ -20,19 +13,9 @@ export async function getStripe(): Promise<StripeClient | null> {
   return stripePromise;
 }
 
-/**
- * Get the server-side Stripe instance for direct API calls
- */
-export function getServerStripe(): Stripe {
-  return serverStripe;
-}
+// WARNING: Server-side Stripe operations should NEVER be done in the frontend
+// All server-side operations should be handled by Netlify Functions or backend APIs
 
-/**
- * Create a Stripe Checkout session for cart items
- * @param items Cart items to checkout
- * @param successUrl URL to redirect to after successful payment
- * @param cancelUrl URL to redirect to if payment is cancelled
- */
 /**
  * Check if the server is available
  * @returns Promise that resolves to true if server is available, false otherwise
