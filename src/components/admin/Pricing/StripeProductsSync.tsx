@@ -58,39 +58,54 @@ function StripeProductsSync() {
   const syncProductsMutation = useMutation({
     mutationFn: async () => {
       setSyncing(true);
-      const results: Record<string, 'success' | 'error'> = {};
+      
+      try {
+        // Call Netlify function to sync all products at once
+        const response = await fetch('/.netlify/functions/sync-products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
 
-      // Sync each product from our STRIPE_PRODUCTS catalog
-      for (const [key, product] of Object.entries(STRIPE_PRODUCTS)) {
-        try {
-          setSyncStatus(prev => ({ ...prev, [key]: 'pending' }));
-          
-          // Call Netlify function to sync from Stripe
-          const response = await fetch('/.netlify/functions/sync-products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productKey: key })
-          });
-
-          if (!response.ok) throw new Error('Sync failed');
-          
-          results[key] = 'success';
-          setSyncStatus(prev => ({ ...prev, [key]: 'success' }));
-        } catch (error) {
-          results[key] = 'error';
-          setSyncStatus(prev => ({ ...prev, [key]: 'error' }));
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Sync failed');
         }
+        
+        const result = await response.json();
+        
+        // Update sync status for all products as success
+        const newStatus: Record<string, 'success' | 'error'> = {};
+        Object.keys(STRIPE_PRODUCTS).forEach(key => {
+          newStatus[key] = 'success';
+        });
+        setSyncStatus(newStatus);
+        
+        return result;
+      } catch (error) {
+        // Update sync status for all products as error
+        const newStatus: Record<string, 'success' | 'error'> = {};
+        Object.keys(STRIPE_PRODUCTS).forEach(key => {
+          newStatus[key] = 'error';
+        });
+        setSyncStatus(newStatus);
+        throw error;
       }
-
-      return results;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['stripe-products'] });
       queryClient.invalidateQueries({ queryKey: ['stripe-prices'] });
+      
+      // Show success message
+      console.log('Sync completed:', result);
+      
       setTimeout(() => {
         setSyncing(false);
         setSyncStatus({});
-      }, 2000);
+      }, 3000);
+    },
+    onError: (error: Error) => {
+      console.error('Sync failed:', error);
+      setSyncing(false);
     }
   });
 

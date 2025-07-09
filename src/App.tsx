@@ -28,6 +28,7 @@ import Auth from './pages/Auth';
 import AuthCallback from './pages/AuthCallback';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import './styles/fullcalendar.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { HelmetProvider, Helmet } from 'react-helmet-async';

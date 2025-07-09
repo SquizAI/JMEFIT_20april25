@@ -81,6 +81,16 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
+    label: 'SHRED Program',
+    icon: <DollarSign className="w-5 h-5" />,
+    tabId: 'shred'
+  },
+  {
+    label: 'Blog',
+    icon: <FileText className="w-5 h-5" />,
+    tabId: 'blog'
+  },
+  {
     label: 'Communications',
     icon: <Mail className="w-5 h-5" />,
     tabId: 'communications'
@@ -110,6 +120,11 @@ const menuItems: MenuItem[] = [
     label: 'Analytics',
     icon: <BarChart className="w-5 h-5" />,
     tabId: 'analytics'
+  },
+  {
+    label: 'Revenue Dashboard',
+    icon: <DollarSign className="w-5 h-5" />,
+    tabId: 'revenue'
   },
   {
     label: 'Settings',

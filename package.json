@@ -26,6 +26,11 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.18",
+    "@fullcalendar/interaction": "^6.1.18",
+    "@fullcalendar/list": "^6.1.18",
+    "@fullcalendar/react": "^6.1.18",
+    "@fullcalendar/timegrid": "^6.1.18",
     "@sentry/react": "^7.101.0",
     "@sentry/tracing": "^7.101.0",
     "@stripe/react-stripe-js": "^3.5.1",

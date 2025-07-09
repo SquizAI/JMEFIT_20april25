@@ -47,9 +47,12 @@ import { ContentManagement } from '../../components/admin/Content/ContentManagem
 import { AutomatedWorkflows } from '../../components/admin/Workflows/AutomatedWorkflows';
 import { CustomerSupport } from '../../components/admin/Support/CustomerSupport';
 import { AdvancedScheduling } from '../../components/admin/Scheduling/AdvancedScheduling';
+import ShredManager from '../../components/admin/ShredManager';
+import BlogEditor from '../../components/admin/Blog/BlogEditor';
+import RevenueDashboard from '../../components/admin/Revenue/RevenueDashboard';
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'settings' | 'financial' | 'content' | 'workflows' | 'support' | 'scheduling'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'shred' | 'blog' | 'revenue' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'settings' | 'financial' | 'content' | 'workflows' | 'support' | 'scheduling'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const [exportLoading, setExportLoading] = useState(false);
@@ -302,6 +305,12 @@ function AdminDashboard() {
         {activeTab === 'pricing' && <PricingManager />}
         
         {activeTab === 'dates' && <DateManager />}
+        
+        {activeTab === 'shred' && <ShredManager />}
+        
+        {activeTab === 'blog' && <BlogEditor />}
+        
+        {activeTab === 'revenue' && <RevenueDashboard />}
         
         {activeTab === 'communications' && <EmailCampaigns />}
 

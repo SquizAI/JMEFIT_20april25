@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, addDays, startOfWeek, endOfWeek } from 'date-fns';
 import { supabase } from '../../../lib/supabase';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 
 interface EventDate {
   id: string;
@@ -202,6 +207,17 @@ function DateManager() {
       case 'maintenance': return 'bg-yellow-100 text-yellow-800';
       case 'holiday': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getEventColor = (type: EventDate['event_type']) => {
+    switch (type) {
+      case 'class': return '#3b82f6'; // blue-500
+      case 'workshop': return '#8b5cf6'; // purple-500
+      case 'challenge': return '#10b981'; // green-500
+      case 'maintenance': return '#f59e0b'; // yellow-500
+      case 'holiday': return '#ef4444'; // red-500
+      default: return '#6b7280'; // gray-500
     }
   };
 
@@ -510,9 +526,109 @@ function DateManager() {
         {/* Calendar View */}
         {activeView === 'calendar' && (
           <div className="p-6">
-            <div className="text-center text-gray-500">
-              Calendar view implementation coming soon...
-            </div>
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+              }}
+              events={[
+                // Transform events to FullCalendar format
+                ...(events?.map(event => ({
+                  id: event.id,
+                  title: event.event_name,
+                  start: event.start_date,
+                  end: event.end_date || event.start_date,
+                  backgroundColor: getEventColor(event.event_type),
+                  borderColor: getEventColor(event.event_type),
+                  extendedProps: {
+                    type: event.event_type,
+                    location: event.location,
+                    instructor: event.instructor,
+                    participants: `${event.current_participants || 0}/${event.max_participants || '∞'}`,
+                    notes: event.notes,
+                    recurring: event.recurring,
+                    recurrence_pattern: event.recurrence_pattern
+                  }
+                })) || []),
+                // Add blackout dates as events
+                ...(blackoutDates?.map(blackout => ({
+                  id: `blackout-${blackout.id}`,
+                  title: `🚫 ${blackout.reason}`,
+                  start: blackout.date,
+                  allDay: true,
+                  backgroundColor: '#ef4444',
+                  borderColor: '#ef4444',
+                  extendedProps: {
+                    type: 'blackout',
+                    affects: blackout.affects_services
+                  }
+                })) || [])
+              ]}
+              editable={true}
+              droppable={true}
+              eventClick={(info) => {
+                // Handle event click - show details or edit
+                const event = info.event;
+                if (event.id.startsWith('blackout-')) {
+                  alert(`Blackout: ${event.title}\nAffects: ${event.extendedProps.affects?.join(', ')}`);
+                } else {
+                  const originalEvent = events?.find(e => e.id === event.id);
+                  if (originalEvent) {
+                    setEditingEvent(originalEvent);
+                    setActiveView('list'); // Switch to list view for editing
+                  }
+                }
+              }}
+              eventDrop={(info) => {
+                // Handle event drag and drop
+                const event = info.event;
+                if (!event.id.startsWith('blackout-')) {
+                  const originalEvent = events?.find(e => e.id === event.id);
+                  if (originalEvent) {
+                    updateEventMutation.mutate({
+                      ...originalEvent,
+                      start_date: event.start?.toISOString() || originalEvent.start_date,
+                      end_date: event.end?.toISOString() || originalEvent.end_date
+                    });
+                  }
+                }
+              }}
+              dateClick={(info) => {
+                // Create new event on date click
+                const newEvent = {
+                  event_name: 'New Event',
+                  event_type: 'class' as EventDate['event_type'],
+                  start_date: info.dateStr,
+                  active: true
+                };
+                setShowNewEventForm(true);
+                // Pre-fill the form with the clicked date
+                setTimeout(() => {
+                  const startDateInput = document.querySelector('input[name="start_date"]') as HTMLInputElement;
+                  if (startDateInput) {
+                    startDateInput.value = info.dateStr + 'T09:00';
+                  }
+                }, 100);
+              }}
+              height="auto"
+              eventContent={(eventInfo) => {
+                // Custom event rendering
+                return (
+                  <div className="p-1 text-xs">
+                    <div className="font-semibold">{eventInfo.event.title}</div>
+                    {eventInfo.event.extendedProps.location && (
+                      <div className="opacity-75">📍 {eventInfo.event.extendedProps.location}</div>
+                    )}
+                    {eventInfo.event.extendedProps.participants && eventInfo.event.extendedProps.type !== 'blackout' && (
+                      <div className="opacity-75">👥 {eventInfo.event.extendedProps.participants}</div>
+                    )}
+                  </div>
+                );
+              }}
+            />
           </div>
         )}
       </div>

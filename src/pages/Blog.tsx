@@ -1,27 +1,76 @@
 import { Link } from 'react-router-dom';
 import { Calendar, User, Clock, Search } from 'lucide-react';
-import { blogPosts } from './blogData';
+import { blogPosts as staticBlogPosts } from './blogData';
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import { format, parseISO } from 'date-fns';
+
+interface DatabaseBlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featured_image?: string;
+  category: string;
+  tags: string[];
+  published_at: string;
+  created_at: string;
+  author?: {
+    full_name: string;
+    email: string;
+  };
+}
 
 function Blog() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredPosts, setFilteredPosts] = useState(blogPosts);
   const [activeCategory, setActiveCategory] = useState('All');
 
-  // Extract unique categories
-  const categories = ['All', ...Array.from(new Set(blogPosts.map(post => post.category)))];
+  // Fetch posts from database
+  const { data: dbPosts, isLoading } = useQuery({
+    queryKey: ['public-blog-posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select(`
+          *,
+          author:profiles!author_id(full_name, email)
+        `)
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as DatabaseBlogPost[];
+    }
+  });
 
-  useEffect(() => {
-    // Filter posts based on search term and active category
-    const filtered = blogPosts.filter(post => {
-      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
-      return matchesSearch && matchesCategory;
-    });
-    
-    setFilteredPosts(filtered);
-  }, [searchTerm, activeCategory]);
+  // Combine database posts with static posts (fallback)
+  const allPosts = dbPosts?.length ? 
+    dbPosts.map(post => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      image: post.featured_image || '/api/placeholder/800/400',
+      category: post.category,
+      author: post.author?.full_name || 'JMEFit Team',
+      date: format(parseISO(post.published_at), 'MMMM d, yyyy'),
+      readTime: Math.ceil(post.content.split(' ').length / 200) + ' min read',
+      tags: post.tags
+    })) : staticBlogPosts;
+
+  // Extract unique categories
+  const categories = ['All', ...Array.from(new Set(allPosts.map(post => post.category)))];
+
+  // Filter posts
+  const filteredPosts = allPosts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -64,7 +113,12 @@ function Blog() {
         </div>
       </div>
 
-      {filteredPosts.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-10">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-jme-purple"></div>
+          <p className="mt-4 text-gray-600">Loading articles...</p>
+        </div>
+      ) : filteredPosts.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-xl text-gray-600">No articles found matching your criteria.</p>
           <button 
