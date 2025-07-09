@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { getServerStripe } from '../stripe';
+// Server-side Stripe operations moved to Netlify functions
 import type { Database } from '../database.types';
 
 export type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
@@ -51,58 +51,23 @@ export async function getSubscriptionPlans() {
 
 /**
  * Create a new subscription using a subscription price ID
+ * NOTE: Server-side operations moved to Netlify functions
  */
 export async function createSubscription(priceId: string) {
   try {
-    // First get the subscription price
-    const { data: price, error: priceError } = await supabase
-      .from('subscription_prices')
-      .select('*')
-      .eq('id', priceId as any) // Using 'as any' to bypass type error temporarily
-      .single();
+    // Create a checkout session via netlify function
+    const response = await fetch('/.netlify/functions/create-subscription-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        priceId,
+        successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/pricing`
+      })
+    });
 
-    if (priceError || !price) {
-      console.error('Error fetching subscription price:', priceError);
-      throw priceError || new Error('Price not found');
-    }
-    
-    // Then get the subscription plan separately
-    const { data: plan, error: planError } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('id', price.subscription_plan_id)
-      .single();
-      
-    if (planError) {
-      console.error('Error fetching subscription plan:', planError);
-      throw planError;
-    }
-    
-    // Combine the data
-    const priceWithPlan = {
-      ...price,
-      subscription_plans: plan
-    };
-
-    // Use server-side Stripe instance for checkout sessions
-    const stripe = getServerStripe();
-    
-    // Create a checkout session via supabase function
-    const { data: { sessionId }, error } = await supabase.functions.invoke(
-      'create-subscription',
-      {
-        body: { 
-          priceId: price.stripe_price_id,
-          successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/pricing`,
-          metadata: {
-            subscription_plan_id: price.subscription_plan_id
-          }
-        }
-      }
-    );
-
-    if (error) throw error;
+    if (!response.ok) throw new Error('Failed to create subscription');
+    const { sessionId } = await response.json();
     return { sessionId };
   } catch (error) {
     console.error('Error creating subscription:', error);

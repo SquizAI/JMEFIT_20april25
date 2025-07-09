@@ -27,6 +27,7 @@ import NotFound from './pages/NotFound';
 import Auth from './pages/Auth';
 import AuthCallback from './pages/AuthCallback';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
@@ -47,11 +48,12 @@ function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Helmet>
-      <AuthProvider>
-        <ErrorBoundary>
-          <ScrollToTop />
-          <div className="min-h-screen bg-white text-gray-900">
-            <Navigation />
+      <ThemeProvider>
+        <AuthProvider>
+          <ErrorBoundary>
+            <ScrollToTop />
+            <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+              <Navigation />
             {/* Added padding-top to ensure content isn't hidden behind the fixed header */}
             <div className="pt-20">
             <AnimatePresence mode="wait">
@@ -96,6 +98,7 @@ function App() {
           </div>
         </ErrorBoundary>
       </AuthProvider>
+    </ThemeProvider>
     </HelmetProvider>
   );
 }

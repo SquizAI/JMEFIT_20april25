@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to the SHRED Challenge - Transform in 6 Weeks!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      line-height: 1.6;
+      color: #1a1a1a;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    
+    .email-container { 
+      max-width: 600px; 
+      margin: 40px auto; 
+      background: #ffffff; 
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    
+    .header { 
+      background: #ffffff; 
+      padding: 50px 30px; 
+      text-align: center; 
+      color: #1a1a1a;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid transparent;
+      border-image: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%) 1;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 70%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    .logo-img { 
+      height: 80px;
+      width: auto;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .tagline { 
+      font-size: 18px; 
+      font-weight: 500; 
+      margin: 0;
+      color: #6b7280;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .content { 
+      padding: 50px 40px; 
+      background: #ffffff;
+    }
+    
+    .greeting { 
+      font-size: 28px; 
+      font-weight: 700; 
+      margin-bottom: 25px; 
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    
+    .challenge-banner {
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      color: white;
+      padding: 35px;
+      border-radius: 16px;
+      margin: 35px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .challenge-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 6s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .challenge-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .challenge-subtitle {
+      font-size: 18px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+    }
+    
+    .main-text { 
+      font-size: 16px; 
+      margin-bottom: 24px; 
+      color: #4a4a4a;
+      line-height: 1.7;
+    }
+    
+    .main-text strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    
+    .challenge-features {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 35px;
+      margin: 35px 0;
+      border-left: 6px solid #8B5CF6;
+    }
+    
+    .features-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #8B5CF6;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .feature-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+    }
+    
+    .feature-icon {
+      background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 14px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .feature-content {
+      flex: 1;
+    }
+    
+    .feature-title {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .feature-description {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .feature-link {
+      color: #8B5CF6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .feature-link:hover {
+      text-decoration: underline;
+    }
+    
+    .steps-section {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      padding: 35px;
+      margin: 35px 0;
+      border: 2px solid #22D3EE;
+    }
+    
+    .steps-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0891b2;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .step-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 211, 238, 0.15);
+    }
+    
+    .step-number {
+      background: linear-gradient(135deg, #22D3EE, #8B5CF6);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 14px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .step-content {
+      flex: 1;
+    }
+    
+    .step-title {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .step-description {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .step-link {
+      display: inline-block;
+      background: linear-gradient(135deg, #22D3EE 0%, #8B5CF6 100%);
+      color: white !important;
+      padding: 10px 20px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      margin: 8px 4px;
+      box-shadow: 0 6px 20px rgba(34, 211, 238, 0.3);
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .step-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(34, 211, 238, 0.4);
+      text-decoration: none;
+    }
+    
+    .transformation-highlight {
+      background: linear-gradient(135deg, #22D3EE 0%, #8B5CF6 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin: 30px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .transformation-highlight::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+    
+    .transformation-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .transformation-subtitle {
+      font-size: 16px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .cta-section {
+      text-align: center;
+      margin: 40px 0;
+      padding: 30px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      border: 2px solid #22D3EE;
+    }
+    
+    .cta-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 15px;
+    }
+    
+    .cta-button { 
+      display: inline-block; 
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%); 
+      color: white !important; 
+      padding: 20px 40px; 
+      border-radius: 50px; 
+      text-decoration: none; 
+      font-weight: 700; 
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+      text-align: center;
+      margin: 16px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 200px;
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(139, 92, 246, 0.5);
+      text-decoration: none;
+    }
+    
+    .important-note {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    
+    .note-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .note-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 10px;
+    }
+    
+    .note-text {
+      color: #92400e;
+      font-size: 14px;
+    }
+    
+    .footer { 
+      background: linear-gradient(135deg, #1f2937 0%, #374151 100%); 
+      padding: 40px 30px; 
+      text-align: center; 
+      color: white;
+    }
+    
+    .footer-brand {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .footer-tagline {
+      opacity: 0.8;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .footer-links {
+      margin: 20px 0;
+    }
+    
+    .footer-link {
+      color: #a5b4fc;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 13px;
+    }
+    
+    .footer-link:hover {
+      color: white;
+    }
+    
+    .footer-text {
+      color: #9ca3af; 
+      font-size: 12px;
+      margin: 5px 0;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        margin: 20px 10px !important;
+        border-radius: 16px !important;
+      }
+      
+      .content {
+        padding: 30px 25px !important;
+      }
+      
+      .header {
+        padding: 40px 25px !important;
+      }
+      
+      .header-title {
+        font-size: 26px !important;
+      }
+      
+      .greeting {
+        font-size: 24px !important;
+      }
+      
+      .challenge-features, .steps-section {
+        padding: 25px !important;
+      }
+      
+      .feature-item, .step-item {
+        padding: 15px !important;
+      }
+      
+      .cta-button {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 10px 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="JME FIT Logo" class="logo-img">
+      <div class="header-title">Welcome to JME FIT!</div>
+      <div class="tagline">SHRED Challenge Starts Now</div>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">Hey {{clientName}}!</div>
+      
+      <div class="challenge-banner">
+        <div class="challenge-title">🔥 SHRED CHALLENGE 🔥</div>
+        <div class="challenge-subtitle">6 Weeks to Transform Your Body & Mind</div>
+      </div>
+      
+      <div class="main-text">
+        Welcome to the <strong>SHRED Challenge</strong>! You've just committed to the most intensive and results-driven program JME FIT offers. Get ready for 6 weeks of transformation that will change not just your body, but your entire relationship with fitness and nutrition.
+      </div>
+      
+      <div class="transformation-highlight">
+        <div class="transformation-title">⚡ Your Transformation Journey</div>
+        <div class="transformation-subtitle">This isn't just a workout program - it's a complete lifestyle transformation designed to build muscle, lose fat, and gain strength simultaneously.</div>
+      </div>
+      
+      <div class="challenge-features">
+        <div class="features-title">🚀 What's Included in Your SHRED Challenge:</div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">💪</div>
+          <div class="feature-content">
+            <div class="feature-title">Complete Nutrition & Training Program</div>
+            <div class="feature-description">
+              Everything from Nutrition & Training Program PLUS intensive 6-week challenge structure
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-content">
+            <div class="feature-title">Custom Workout Plans</div>
+            <div class="feature-description">
+              Progressive training designed for all fitness levels - beginner to advanced
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">🥗</div>
+          <div class="feature-content">
+            <div class="feature-title">Personalized Meal Plans</div>
+            <div class="feature-description">
+              Learn how to eat for life while achieving rapid transformation results
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">📱</div>
+          <div class="feature-content">
+            <div class="feature-title">24/7 App Access & Support</div>
+            <div class="feature-description">
+              Direct messaging with Jaime, progress tracking, and complete video library
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">👥</div>
+          <div class="feature-content">
+            <div class="feature-title">Exclusive Challenge Community</div>
+            <div class="feature-description">
+              Connect with other SHRED participants for motivation and accountability
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="steps-section">
+        <div class="steps-title">🚀 Your Next Steps to Success:</div>
+        
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">📋 Complete Your Challenge Questionnaire</div>
+            <div class="step-description">
+              Detailed assessment to customize your 6-week transformation plan.
+              <br><br><a href="https://docs.google.com/forms/d/e/1FAIpQLSeUEAsXaMaf7F2c_XLgcUm09cr7oVW0NJiW-Cq8iSHGe88EOQ/viewform?usp=sharing" class="step-link">📋 Complete Questionnaire</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">📚 Study Your Challenge Materials</div>
+            <div class="step-description">
+              Master the fundamentals with your comprehensive guidebooks:
+              <br><br><a href="https://gamma.app/docs/JME-FIT-Macro-Coaching-Guidebook-2latb6tgsmaldht" class="step-link">📚 Macro Coaching Guidebook</a>
+              <br><a href="https://gamma.app/docs/JME-FIT-Grocery-ListMeal-IdeasDining-Out-05htxf64hdq7g9s" class="step-link">🛒 Grocery List & Meal Planning</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">🏋️ Access Your Training Hub</div>
+            <div class="step-description">
+              You'll receive My PT Hub access via email. Download the app and prepare for your custom workouts.
+            </div>
+          </div>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <div class="step-title">📊 Take Your BEFORE Photos & Measurements</div>
+            <div class="step-description">
+              Document your starting point with photos and InBody scan (if available). This is crucial for tracking your 6-week transformation!
+            </div>
+          </div>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <div class="step-title">📱 Download Essential Apps</div>
+            <div class="step-description">
+              Get MyFitnessPal for macro tracking and join our private Facebook group for challenge support.
+              <br><a href="https://www.myfitnesspal.com/" class="step-link">Download MyFitnessPal →</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-number">6</div>
+          <div class="step-content">
+            <div class="step-title">⚖️ Get Your Food Scale</div>
+            <div class="step-description">
+              Precision is key for the SHRED Challenge. A digital food scale is essential for tracking success.
+            </div>
+          </div>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-number">7</div>
+          <div class="step-content">
+            <div class="step-title">👥 Join the SHRED Community</div>
+            <div class="step-description">
+              Connect with fellow challengers in our private Facebook group and tag @jmefit_ on Instagram to announce your commitment!
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="important-note">
+        <div class="note-icon">🔥</div>
+        <div class="note-title">Challenge Mindset</div>
+        <div class="note-text">
+          The SHRED Challenge is intense by design. Expect to be pushed outside your comfort zone - that's where the magic happens! Your custom plan will be delivered within 24-48 hours.
+        </div>
+      </div>
+      
+      <div class="cta-section">
+        <div class="cta-title">Ready to SHRED?</div>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeUEAsXaMaf7F2c_XLgcUm09cr7oVW0NJiW-Cq8iSHGe88EOQ/viewform?usp=sharing" class="cta-button">
+          Start Your Challenge
+        </a>
+        <a href="https://jmefit.com/contact" class="cta-button">
+          Chat with Jaime
+        </a>
+      </div>
+      
+      <div class="main-text">
+        You've made the commitment - now it's time to show up and do the work. I'm here to guide you every step of the way. Let's make these 6 weeks count! 🔥💪
+      </div>
+      
+      <div class="main-text">
+        <strong>Ready to SHRED,</strong><br>
+        Jaime & The JME FIT Team
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-brand">JME FIT Online Training</div>
+      <div class="footer-tagline">Transform Mind & Body, Elevate Life</div>
+      <div class="footer-links">
+        <a href="https://jmefit.com" class="footer-link">Website</a>
+        <a href="https://instagram.com/jmefit_" class="footer-link">Instagram</a>
+        <a href="{{privacyUrl}}" class="footer-link">Privacy Policy</a>
+        <a href="{{unsubscribeUrl}}" class="footer-link">Unsubscribe</a>
+      </div>
+      <div class="footer-text">
+        Follow the journey on Instagram #SHREDChallenge
+      </div>
+    </div>
+  </div>
+</body>
+</html> 

@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import type { Database } from '../database.types';
-import { getServerStripe } from '../stripe';
+// Server-side Stripe operations moved to Netlify functions
 
 export type Product = Database['public']['Tables']['products']['Row'];
 export type Price = Database['public']['Tables']['prices']['Row'];
@@ -84,7 +84,7 @@ export async function getProduct(id: string) {
 }
 
 /**
- * Create a new product in both Stripe and our database
+ * Create a new product in our database (Stripe operations handled by Netlify functions)
  */
 export async function createProduct({
   name,
@@ -97,45 +97,22 @@ export async function createProduct({
   imageUrl?: string;
   metadata?: Record<string, any>;
 }) {
-  // Create product in Stripe first
-  const stripe = getServerStripe();
-  
   try {
-    // Convert metadata to string key-value pairs for Stripe
-    const stripeMetadata: Record<string, string> = {};
-    if (metadata && typeof metadata === 'object') {
-      Object.entries(metadata).forEach(([key, value]) => {
-        if (typeof value === 'string') {
-          stripeMetadata[key] = value;
-        } else if (value !== null && value !== undefined) {
-          stripeMetadata[key] = String(value);
-        }
-      });
-    }
-    
-    const stripeProduct = await stripe.products.create({
-      name,
-      description,
-      images: imageUrl ? [imageUrl] : undefined,
-      metadata: stripeMetadata
-    });
+    // Create product in our database (Stripe operations handled by Netlify functions)
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        name,
+        description,
+        image_url: imageUrl,
+        metadata,
+        active: true
+      } as any)
+      .select()
+      .single();
 
-  // Then create product in our database with the Stripe ID
-  const { data, error } = await supabase
-    .from('products')
-    .insert({
-      name,
-      description,
-      image_url: imageUrl,
-      stripe_product_id: stripeProduct.id,
-      metadata,
-      active: true
-    } as any)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error creating product:', error);
     throw error;

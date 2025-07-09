@@ -2,15 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import SEO from '../../components/SEO';
-import TabButton from '../../components/admin/TabButton';
-import Overview from '../../components/admin/tabs/Overview';
+import { AdminSidebar } from '../../components/admin/Sidebar';
+import Overview from '../../components/admin/Overview';
+import PricingManager from '../../components/admin/Pricing';
+import DateManager from '../../components/admin/DateManager';
+import { EmailCampaigns } from '../../components/admin/Email';
+import { ThemeToggle } from '../../components/admin/Theme';
+import { Analytics } from '../../components/admin/Analytics';
+import { GlobalSearch } from '../../components/admin/Search';
+import { QuickActions } from '../../components/admin/QuickActions';
+import { ActivityTimeline } from '../../components/admin/ActivityTimeline';
+import { UserManagement } from '../../components/admin/Users/UserManagement';
+import { CustomizableDashboard } from '../../components/admin/Dashboard/CustomizableDashboard';
+import { IntegrationHub } from '../../components/admin/Integrations/IntegrationHub';
+import { NotificationCenter } from '../../components/admin/Notifications/NotificationCenter';
 import { supabase } from '../../lib/supabase';
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  DollarSign,
+  Mail,
+  Clock,
+  Package,
+  FileText,
+  BarChart3,
+  MessageSquare,
+  Search,
+  Bell,
+  Link2
+} from 'lucide-react';
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'pricing' | 'invoices' | 'merchandise' | 'waitlist'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'settings'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const [exportLoading, setExportLoading] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
   // Queries
   const { data: orders, refetch: refetchOrders } = useQuery({
@@ -72,6 +100,19 @@ function AdminDashboard() {
       return data;
     }
   });
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowGlobalSearch(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Set up real-time subscriptions
   useEffect(() => {
@@ -147,7 +188,7 @@ function AdminDashboard() {
 
       const csv = [
         ['Order ID', 'Date', 'Customer', 'Total', 'Status'],
-        ...csvData.map(row => Object.values(row))
+        ...(csvData || []).map(row => Object.values(row))
       ].map(row => row.join(',')).join('\n');
 
       const blob = new Blob([csv], { type: 'text/csv' });
@@ -166,46 +207,55 @@ function AdminDashboard() {
     }
   };
 
+  const sidebarItems = [
+    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={20} /> },
+    { id: 'dashboard', label: 'Custom Dashboard', icon: <LayoutDashboard size={20} /> },
+    { id: 'users', label: 'Users', icon: <Users size={20} /> },
+    { id: 'pricing', label: 'Pricing', icon: <DollarSign size={20} /> },
+    { id: 'dates', label: 'Dates', icon: <Calendar size={20} /> },
+    { id: 'invoices', label: 'Invoices', icon: <FileText size={20} /> },
+    { id: 'merchandise', label: 'Merchandise', icon: <Package size={20} /> },
+    { id: 'waitlist', label: 'SHRED Waitlist', icon: <Clock size={20} /> },
+    { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={20} /> },
+    { id: 'communications', label: 'Communications', icon: <Mail size={20} /> },
+    { id: 'notifications', label: 'Notifications', icon: <Bell size={20} /> },
+    { id: 'integrations', label: 'Integrations', icon: <Link2 size={20} /> }
+  ];
+
   return (
     <>
       <SEO 
         title="Admin Dashboard" 
         noindex={true}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-jme-purple focus:border-transparent bg-white"
-            >
-              <option value="today">Today</option>
-              <option value="week">Last 7 Days</option>
-              <option value="month">Last 30 Days</option>
-              <option value="year">Last Year</option>
-            </select>
-            <TabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
-              Overview
-            </TabButton>
-            <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')}>
-              Users
-            </TabButton>
-            <TabButton active={activeTab === 'pricing'} onClick={() => setActiveTab('pricing')}>
-              Pricing
-            </TabButton>
-            <TabButton active={activeTab === 'invoices'} onClick={() => setActiveTab('invoices')}>
-              Invoices
-            </TabButton>
-            <TabButton active={activeTab === 'merchandise'} onClick={() => setActiveTab('merchandise')}>
-              Merchandise
-            </TabButton>
-            <TabButton active={activeTab === 'waitlist'} onClick={() => setActiveTab('waitlist')}>
-              SHRED Waitlist
-            </TabButton>
-          </div>
-        </div>
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setShowGlobalSearch(true)}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <Search size={16} />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Search...</span>
+                  <kbd className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">⌘K</kbd>
+                </button>
+                <ThemeToggle />
+                <select
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-jme-purple focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="today">Today</option>
+                  <option value="week">Last 7 Days</option>
+                  <option value="month">Last 30 Days</option>
+                  <option value="year">Last Year</option>
+                </select>
+              </div>
+            </div>
 
         {activeTab === 'overview' && (
           <Overview
@@ -219,16 +269,40 @@ function AdminDashboard() {
           />
         )}
 
+        {activeTab === 'pricing' && <PricingManager />}
+        
+        {activeTab === 'dates' && <DateManager />}
+        
+        {activeTab === 'communications' && <EmailCampaigns />}
+
+        {activeTab === 'analytics' && (
+          <Analytics 
+            orders={getFilteredOrders()} 
+            products={products || []} 
+            dateRange={dateRange}
+          />
+        )}
+
+        {activeTab === 'dashboard' && <CustomizableDashboard />}
+
+        {activeTab === 'users' && (
+          <UserManagement />
+        )}
+
+        {activeTab === 'notifications' && <NotificationCenter />}
+
+        {activeTab === 'integrations' && <IntegrationHub />}
+
         {activeTab === 'waitlist' && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold">SHRED Waitlist Entries</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div className="p-6 border-b dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">SHRED Waitlist Entries</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <tr className="bg-gray-50 dark:bg-gray-700">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                       Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -349,8 +423,12 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Other tabs remain unchanged */}
+            {/* Other tabs remain unchanged */}
+          </div>
+        </div>
       </div>
+      <GlobalSearch isOpen={showGlobalSearch} onClose={() => setShowGlobalSearch(false)} />
+      <QuickActions />
     </>
   );
 }

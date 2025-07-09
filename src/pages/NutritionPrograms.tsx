@@ -47,7 +47,7 @@ function NutritionPrograms() {
     nutritionTraining: 'year'
   });
 
-  // Standardized function to get correct price based on current display interval using Stripe products
+  // Standardized function to get correct price based on current display interval using new Stripe products
   const getCorrectPrice = (productName: string, programKey: keyof typeof displayIntervals) => {
     const interval = displayIntervals[programKey];
     
@@ -67,26 +67,28 @@ function NutritionPrograms() {
     }
     
     // Get price amount from centralized configuration
-    const amountInCents = getPriceAmount(productKey as string, interval as string);
+    const amountInCents = getPriceAmount(productKey as string, interval);
     return amountInCents / 100; // Convert from cents to dollars
   };
 
   const handleAddToCart = (program: { name: string; price: number; description: string }) => {
-    // Check if this is a one-time product
-    const isOneTimeProduct = program.name.includes('One-Time') || program.name.includes('Shred');
-    
     // Get the current interval for this program
     let programKey: keyof typeof displayIntervals;
-    let interval: 'month' | 'year' | undefined = undefined;
     
-    if (!isOneTimeProduct) {
-      if (program.name.includes("Nutrition Only")) {
-        programKey = "nutritionOnly";
-      } else {
-        programKey = "nutritionTraining";
-      }
-      interval = displayIntervals[programKey];
+    if (program.name === "Nutrition Only Program") {
+      programKey = "nutritionOnly";
+    } else if (program.name === "Nutrition & Training Program") {
+      programKey = "nutritionTraining";
+    } else {
+      // For one-time products, use a default key
+      programKey = "nutritionOnly";
     }
+    
+    // Get the interval for this program
+    const interval = displayIntervals[programKey];
+    
+    // Check if this is a one-time product like One-Time Macros
+    const isOneTimeProduct = program.name.includes('One-Time') || program.name.includes('Macros');
     
     // Map program names to STRIPE_PRODUCTS keys for getting the correct Stripe price ID
     const productMap: Record<string, keyof typeof STRIPE_PRODUCTS> = {
@@ -99,7 +101,7 @@ function NutritionPrograms() {
     let stripePriceId = '';
     
     if (productKey) {
-      stripePriceId = getPriceId(productKey as string, isOneTimeProduct ? undefined : (interval as string));
+      stripePriceId = getPriceId(productKey as string, isOneTimeProduct ? undefined : interval);
     }
     
     addItem({
@@ -110,9 +112,9 @@ function NutritionPrograms() {
       billingInterval: isOneTimeProduct ? 'one-time' : interval,
       stripe_price_id: stripePriceId
     });
+    toast.success(`${program.name} added to cart!`);
     
-    toast.success('Added to cart!');
-    navigate('/checkout');
+    // Don't navigate to checkout automatically - same as Programs.tsx
   };
 
   return (

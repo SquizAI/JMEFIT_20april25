@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to JME FIT - Your Macros Are Ready!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      line-height: 1.6;
+      color: #1a1a1a;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    
+    .email-container { 
+      max-width: 600px; 
+      margin: 40px auto; 
+      background: #ffffff; 
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    
+    .header { 
+      background: #ffffff; 
+      padding: 50px 30px; 
+      text-align: center; 
+      color: #1a1a1a;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid transparent;
+      border-image: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%) 1;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 70%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    .logo-img { 
+      height: 80px;
+      width: auto;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .tagline { 
+      font-size: 18px; 
+      font-weight: 500; 
+      margin: 0;
+      color: #6b7280;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .content { 
+      padding: 50px 40px; 
+      background: #ffffff;
+    }
+    
+    .greeting { 
+      font-size: 28px; 
+      font-weight: 700; 
+      margin-bottom: 25px; 
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    
+    .welcome-message {
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      color: white;
+      padding: 35px;
+      border-radius: 16px;
+      margin: 35px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .welcome-message::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 6s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .welcome-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .welcome-subtitle {
+      font-size: 16px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .main-text { 
+      font-size: 16px; 
+      margin-bottom: 24px; 
+      color: #4a4a4a;
+      line-height: 1.7;
+    }
+    
+    .main-text strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    
+    .macros-highlight {
+      background: linear-gradient(135deg, #22D3EE 0%, #8B5CF6 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin: 30px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .macros-highlight::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+    
+    .macros-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .macros-subtitle {
+      font-size: 16px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .resources-section {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 35px;
+      margin: 35px 0;
+      border-left: 6px solid #22D3EE;
+    }
+    
+    .resources-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #22D3EE;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    
+    .resource-item {
+      display: flex;
+      align-items: flex-start;
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .resource-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 211, 238, 0.15);
+    }
+    
+    .resource-icon {
+      background: linear-gradient(135deg, #22D3EE, #8B5CF6);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 14px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .resource-content {
+      flex: 1;
+    }
+    
+    .resource-title {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .resource-description {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .resource-link {
+      color: #22D3EE;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .resource-link:hover {
+      text-decoration: underline;
+    }
+    
+    .next-steps {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      padding: 30px;
+      margin: 30px 0;
+      border: 2px solid #22D3EE;
+    }
+    
+    .next-steps-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0891b2;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .step-item {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+      font-size: 15px;
+      color: #0e7490;
+    }
+    
+    .step-icon {
+      background: linear-gradient(135deg, #22D3EE, #8B5CF6);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .cta-section {
+      text-align: center;
+      margin: 40px 0;
+      padding: 30px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      border: 2px solid #22D3EE;
+    }
+    
+    .cta-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 15px;
+    }
+    
+    .cta-button { 
+      display: inline-block; 
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%); 
+      color: white !important; 
+      padding: 20px 40px; 
+      border-radius: 50px; 
+      text-decoration: none; 
+      font-weight: 700; 
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+      text-align: center;
+      margin: 16px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 200px;
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(139, 92, 246, 0.5);
+      text-decoration: none;
+    }
+    
+    .important-note {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    
+    .note-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .note-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 10px;
+    }
+    
+    .note-text {
+      color: #92400e;
+      font-size: 14px;
+    }
+    
+    .footer { 
+      background: linear-gradient(135deg, #1f2937 0%, #374151 100%); 
+      padding: 40px 30px; 
+      text-align: center; 
+      color: white;
+    }
+    
+    .footer-brand {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .footer-tagline {
+      opacity: 0.8;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .footer-links {
+      margin: 20px 0;
+    }
+    
+    .footer-link {
+      color: #a5b4fc;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 13px;
+    }
+    
+    .footer-link:hover {
+      color: white;
+    }
+    
+    .footer-text {
+      color: #9ca3af; 
+      font-size: 12px;
+      margin: 5px 0;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        margin: 20px 10px !important;
+        border-radius: 16px !important;
+      }
+      
+      .content {
+        padding: 30px 25px !important;
+      }
+      
+      .header {
+        padding: 40px 25px !important;
+      }
+      
+      .header-title {
+        font-size: 26px !important;
+      }
+      
+      .greeting {
+        font-size: 24px !important;
+      }
+      
+      .resources-section {
+        padding: 25px !important;
+      }
+      
+      .resource-item {
+        padding: 15px !important;
+      }
+      
+      .cta-button {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 10px 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="JME FIT Logo" class="logo-img">
+      <div class="header-title">Welcome to JME FIT!</div>
+      <div class="tagline">Your Custom Macros Are Ready</div>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">Hey {{clientName}}!</div>
+      
+      <div class="welcome-message">
+        <div class="welcome-title">🎯 Your Macro Journey Starts Now!</div>
+        <div class="welcome-subtitle">Thank you for choosing the One-Time Macros Calculation. Let's get you set up for success!</div>
+      </div>
+      
+      <div class="main-text">
+        You've made an excellent choice! Understanding your macros is the foundation of sustainable nutrition success. You now have access to everything you need to start tracking and achieving your goals.
+      </div>
+      
+      <div class="macros-highlight">
+        <div class="macros-title">📊 Your Custom Macros</div>
+        <div class="macros-subtitle">Your personalized macro calculations will be delivered within 24-48 hours after completing your questionnaire.</div>
+      </div>
+      
+      <div class="resources-section">
+        <div class="resources-title">📚 Your Complete Resource Package:</div>
+        
+        <div class="resource-item">
+          <div class="resource-icon">📖</div>
+          <div class="resource-content">
+            <div class="resource-title">Macro Coaching Guidebook</div>
+            <div class="resource-description">
+              Complete guide to understanding macros, tracking, and meal planning.
+              <br><a href="https://gamma.app/docs/JME-FIT-Macro-Coaching-Guidebook-2latb6tgsmaldht" class="resource-link">Access Guidebook →</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="resource-item">
+          <div class="resource-icon">🛒</div>
+          <div class="resource-content">
+            <div class="resource-title">Grocery List & Meal Ideas</div>
+            <div class="resource-description">
+              Shopping lists, meal ideas, and dining out strategies.
+              <br><a href="https://gamma.app/docs/JME-FIT-Grocery-ListMeal-IdeasDining-Out-05htxf64hdq7g9s" class="resource-link">View Meal Ideas →</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="resource-item">
+          <div class="resource-icon">📱</div>
+          <div class="resource-content">
+            <div class="resource-title">MyFitnessPal Setup</div>
+            <div class="resource-description">
+              Essential app for tracking your macros daily (Premium recommended but free version works).
+              <br><a href="https://www.myfitnesspal.com/" class="resource-link">Download MyFitnessPal →</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="resource-item">
+          <div class="resource-icon">⚖️</div>
+          <div class="resource-content">
+            <div class="resource-title">Food Scale</div>
+            <div class="resource-description">
+              Digital food scale is essential for accurate macro tracking (available for around $20 online).
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="next-steps">
+        <div class="next-steps-title">🚀 Next Steps to Success:</div>
+        
+        <div class="step-item">
+          <div class="step-icon">1</div>
+          <span><strong>Complete your questionnaire</strong> to receive your custom macros</span>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-icon">2</div>
+          <span><strong>Read the Macro Coaching Guidebook</strong> thoroughly</span>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-icon">3</div>
+          <span><strong>Download MyFitnessPal</strong> and familiarize yourself with the app</span>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-icon">4</div>
+          <span><strong>Get your food scale</strong> for accurate measurements</span>
+        </div>
+        
+        <div class="step-item">
+          <div class="step-icon">5</div>
+          <span><strong>Start tracking</strong> once you receive your custom macros</span>
+        </div>
+      </div>
+      
+      <div class="important-note">
+        <div class="note-icon">⭐</div>
+        <div class="note-title">Optional Progress Tracking</div>
+        <div class="note-text">
+          While this is a one-time service, you can still track your progress with photos and measurements. Consider upgrading to full coaching if you want ongoing support!
+        </div>
+      </div>
+      
+      <div class="cta-section">
+        <div class="cta-title">Ready to Get Started?</div>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeUEAsXaMaf7F2c_XLgcUm09cr7oVW0NJiW-Cq8iSHGe88EOQ/viewform?usp=sharing" class="cta-button">
+          Complete Questionnaire
+        </a>
+        <a href="https://jmefit.com/contact" class="cta-button">
+          Ask Questions
+        </a>
+      </div>
+      
+      <div class="main-text">
+        You're taking control of your nutrition journey, and that's something to be proud of! If you have any questions, don't hesitate to reach out.
+      </div>
+      
+      <div class="main-text">
+        <strong>Best,</strong><br>
+        Jaime & The JME FIT Team
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-brand">JME FIT Online Training</div>
+      <div class="footer-tagline">Transform Mind & Body, Elevate Life</div>
+      <div class="footer-links">
+        <a href="https://jmefit.com" class="footer-link">Website</a>
+        <a href="https://instagram.com/jmefit_" class="footer-link">Instagram</a>
+        <a href="{{privacyUrl}}" class="footer-link">Privacy Policy</a>
+        <a href="{{unsubscribeUrl}}" class="footer-link">Unsubscribe</a>
+      </div>
+      <div class="footer-text">
+        Follow me on Instagram for daily nutrition tips!
+      </div>
+    </div>
+  </div>
+</body>
+</html> 

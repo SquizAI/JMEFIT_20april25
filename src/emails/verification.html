@@ -1,117 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your JMEFit Account</title>
+  <title>Verify Your JME FIT Account</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       line-height: 1.6;
-      color: #333;
+      color: #1a1a1a;
+    }
+    
+    .email-container { 
+      max-width: 600px; 
+      margin: 40px auto; 
+      background: #ffffff; 
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    
+    .header { 
+      background: #ffffff; 
+      padding: 50px 30px; 
+      text-align: center; 
+      color: #1a1a1a;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid transparent;
+      border-image: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%) 1;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 70%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    .logo-img { 
+      height: 80px;
+      width: auto;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .tagline { 
+      font-size: 18px; 
+      font-weight: 500; 
       margin: 0;
-      padding: 0;
-      background-color: #f9f9f9;
+      color: #6b7280;
+      position: relative;
+      z-index: 1;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    
+    .content { 
+      padding: 50px 40px; 
+      background: #ffffff;
     }
-    .header {
+    
+    .main-text { 
+      font-size: 16px; 
+      margin-bottom: 24px; 
+      color: #4a4a4a;
+      line-height: 1.7;
+    }
+    
+    .verify-button { 
+      display: inline-block; 
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%); 
+      color: white !important; 
+      padding: 20px 40px; 
+      border-radius: 50px; 
+      text-decoration: none; 
+      font-weight: 700; 
+      font-size: 18px;
+      box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
       text-align: center;
-      padding: 20px 0;
-      border-bottom: 1px solid #eee;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 250px;
     }
-    .logo {
-      max-width: 150px;
-      height: auto;
+    
+    .verify-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(139, 92, 246, 0.5);
+      text-decoration: none;
     }
-    .content {
-      padding: 20px 0;
-    }
-    .button {
-      display: inline-block;
-      padding: 12px 24px;
-      background: linear-gradient(to right, #8b5cf6, #7c3aed);
+    
+    .footer { 
+      background: linear-gradient(135deg, #1f2937 0%, #374151 100%); 
+      padding: 40px 30px; 
+      text-align: center; 
       color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-      margin: 20px 0;
     }
-    .alert {
-      padding: 15px;
-      background-color: #f8f9fa;
-      border-left: 4px solid #8b5cf6;
-      margin: 20px 0;
+    
+    .footer-brand {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    .footer {
-      text-align: center;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-      color: #888;
+    
+    .footer-text {
+      color: #9ca3af; 
       font-size: 12px;
-    }
-    .social-links {
-      margin: 15px 0;
-    }
-    .social-links a {
-      display: inline-block;
-      margin: 0 10px;
-      color: #8b5cf6;
-      text-decoration: none;
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="email-container">
     <div class="header">
-      <img src="{{logoUrl}}" alt="JMEFit Logo" class="logo">
-      <h1>Verify Your Email Address</h1>
+      <img src="{{logoUrl}}" alt="JME FIT Logo" class="logo-img">
+      <div class="header-title">Verify Your Account</div>
+      <div class="tagline">Almost There!</div>
     </div>
     
     <div class="content">
-      <p>Hello {{fullName}},</p>
-      
-      <p>Thank you for signing up with JMEFit! To complete your registration and access all our features, please verify your email address by clicking the button below:</p>
-      
-      <div style="text-align: center;">
-        <a href="{{verificationUrl}}" class="button">Verify My Email</a>
+      <div class="main-text">
+        Hi {{userName}},
       </div>
       
-      <div class="alert">
-        <p><strong>Note:</strong> This verification link will expire in 24 hours for security reasons.</p>
+      <div class="main-text">
+        Welcome to JME FIT! Please verify your email address to complete your account setup and start your transformation journey.
       </div>
       
-      <p>If the button above doesn't work, copy and paste the following URL into your browser:</p>
-      <p style="word-break: break-all; font-size: 12px;">{{verificationUrl}}</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="{{verificationUrl}}" class="verify-button">
+          ✅ Verify Email Address
+        </a>
+      </div>
       
-      <p>Once verified, you'll have full access to your JMEFit account and all our premium features.</p>
+      <div class="main-text">
+        If the button doesn't work, copy and paste this link into your browser:
+        <br>
+        <a href="{{verificationUrl}}" style="color: #8B5CF6; word-break: break-all;">{{verificationUrl}}</a>
+      </div>
       
-      <p>If you did not create an account with JMEFit, please disregard this email.</p>
-      
-      <p>If you need any assistance, please contact our support team at <a href="mailto:support@jmefit.com">support@jmefit.com</a>.</p>
-      
-      <p>Welcome to the JMEFit community!</p>
-      
-      <p>The JMEFit Team</p>
+      <div class="main-text">
+        If you didn't create an account with JME FIT, you can safely ignore this email.
+      </div>
     </div>
     
     <div class="footer">
-      <div class="social-links">
-        <a href="https://instagram.com/jmefit">Instagram</a>
-        <a href="https://twitter.com/jmefit">Twitter</a>
-        <a href="https://facebook.com/jmefit">Facebook</a>
-      </div>
-      <p>&copy; 2023 JMEFit. All rights reserved.</p>
-      <p>123 Fitness Street, Workout City, WO 12345</p>
-      <p>
-        <a href="{{privacyUrl}}">Privacy Policy</a>
-      </p>
+      <div class="footer-brand">JME FIT Online Training</div>
+      <div class="footer-text">Transform Mind & Body, Elevate Life</div>
     </div>
   </div>
 </body>

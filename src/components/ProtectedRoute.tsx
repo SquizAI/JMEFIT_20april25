@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertCircle } from 'lucide-react';
 
@@ -51,8 +51,8 @@ function ProtectedRoute({ children, adminOnly = false }: ProtectedRouteProps) {
     />;
   }
 
-  // Check admin role for admin routes
-  if (adminOnly && user.user_metadata?.role !== 'admin') {
+  // Check admin role for admin routes - check both role and is_admin
+  if (adminOnly && user.user_metadata?.role !== 'admin' && user.user_metadata?.is_admin !== true) {
     return <Navigate to="/admin/login" replace />;
   }
 
