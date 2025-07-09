@@ -30,11 +30,26 @@ import {
   MessageSquare,
   Search,
   Bell,
-  Link2
+  Link2,
+  Home,
+  ShoppingCart,
+  TrendingUp,
+  GitBranch,
+  HelpCircle,
+  Settings,
+  BarChart,
+  LogOut,
+  ChevronLeft,
+  Menu
 } from 'lucide-react';
+import { FinancialReports } from '../../components/admin/Analytics/FinancialReports';
+import { ContentManagement } from '../../components/admin/Content/ContentManagement';
+import { AutomatedWorkflows } from '../../components/admin/Workflows/AutomatedWorkflows';
+import { CustomerSupport } from '../../components/admin/Support/CustomerSupport';
+import { AdvancedScheduling } from '../../components/admin/Scheduling/AdvancedScheduling';
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'settings' | 'financial' | 'content' | 'workflows' | 'support' | 'scheduling'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const [exportLoading, setExportLoading] = useState(false);
@@ -220,6 +235,22 @@ function AdminDashboard() {
     { id: 'communications', label: 'Communications', icon: <Mail size={20} /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell size={20} /> },
     { id: 'integrations', label: 'Integrations', icon: <Link2 size={20} /> }
+  ];
+
+  const tabOptions = [
+    { id: 'overview', label: 'Overview', icon: Home },
+    { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'users', label: 'Users', icon: Users },
+    { id: 'pricing', label: 'Pricing', icon: DollarSign },
+    { id: 'dates', label: 'Dates', icon: Calendar },
+    { id: 'email', label: 'Email', icon: Mail },
+    { id: 'analytics', label: 'Analytics', icon: BarChart },
+    { id: 'financial', label: 'Financial', icon: TrendingUp },
+    { id: 'content', label: 'Content', icon: FileText },
+    { id: 'workflows', label: 'Workflows', icon: GitBranch },
+    { id: 'support', label: 'Support', icon: HelpCircle },
+    { id: 'scheduling', label: 'Scheduling', icon: Clock },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -422,6 +453,12 @@ function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {activeTab === 'financial' && <FinancialReports />}
+        {activeTab === 'content' && <ContentManagement />}
+        {activeTab === 'workflows' && <AutomatedWorkflows />}
+        {activeTab === 'support' && <CustomerSupport />}
+        {activeTab === 'scheduling' && <AdvancedScheduling />}
 
             {/* Other tabs remain unchanged */}
           </div>

@@ -277,3 +277,185 @@ BEGIN
             )', table_name, table_name);
     END LOOP;
 END $$; 
+
+-- Financial Reports Tables
+CREATE TABLE IF NOT EXISTS revenue_metrics (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  metric_date DATE NOT NULL,
+  mrr DECIMAL(10,2) DEFAULT 0,
+  arr DECIMAL(10,2) DEFAULT 0,
+  new_mrr DECIMAL(10,2) DEFAULT 0,
+  churned_mrr DECIMAL(10,2) DEFAULT 0,
+  expansion_mrr DECIMAL(10,2) DEFAULT 0,
+  contraction_mrr DECIMAL(10,2) DEFAULT 0,
+  active_subscriptions INTEGER DEFAULT 0,
+  new_customers INTEGER DEFAULT 0,
+  churned_customers INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  UNIQUE(metric_date)
+);
+
+CREATE TABLE IF NOT EXISTS payment_analytics (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  amount DECIMAL(10,2),
+  status TEXT,
+  failure_reason TEXT,
+  retry_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Content Management Tables
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  content TEXT,
+  excerpt TEXT,
+  featured_image TEXT,
+  author_id UUID REFERENCES auth.users(id),
+  status TEXT DEFAULT 'draft',
+  published_at TIMESTAMP WITH TIME ZONE,
+  categories TEXT[],
+  tags TEXT[],
+  seo_title TEXT,
+  seo_description TEXT,
+  views INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE TABLE IF NOT EXISTS media_library (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  filename TEXT NOT NULL,
+  url TEXT NOT NULL,
+  type TEXT,
+  size INTEGER,
+  width INTEGER,
+  height INTEGER,
+  alt_text TEXT,
+  uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Automated Workflows Tables
+CREATE TABLE IF NOT EXISTS automation_workflows (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT,
+  status TEXT DEFAULT 'draft',
+  trigger JSONB,
+  conditions JSONB,
+  actions JSONB,
+  stats JSONB DEFAULT '{"enrolled": 0, "completed": 0, "conversion_rate": 0, "revenue_generated": 0}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE TABLE IF NOT EXISTS cart_recovery_analytics (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  abandoned_carts INTEGER DEFAULT 0,
+  recovered_carts INTEGER DEFAULT 0,
+  recovery_rate DECIMAL(5,2) DEFAULT 0,
+  emails_sent INTEGER DEFAULT 0,
+  revenue_recovered DECIMAL(10,2) DEFAULT 0,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Customer Support Tables
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  user_email TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'open',
+  priority TEXT DEFAULT 'medium',
+  category TEXT,
+  assigned_to UUID,
+  satisfaction_rating INTEGER,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE TABLE IF NOT EXISTS ticket_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  ticket_id UUID REFERENCES support_tickets(id) ON DELETE CASCADE,
+  sender_type TEXT NOT NULL,
+  sender_id UUID,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE TABLE IF NOT EXISTS faq_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  category TEXT,
+  helpful_count INTEGER DEFAULT 0,
+  not_helpful_count INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Advanced Scheduling Tables
+CREATE TABLE IF NOT EXISTS instructors (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  bio TEXT,
+  specialties TEXT[],
+  rating DECIMAL(3,2) DEFAULT 5.0,
+  photo_url TEXT,
+  availability JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+CREATE TABLE IF NOT EXISTS fitness_classes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  instructor_id UUID REFERENCES instructors(id),
+  type TEXT DEFAULT 'in-person',
+  location TEXT,
+  zoom_link TEXT,
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  capacity INTEGER DEFAULT 20,
+  enrolled INTEGER DEFAULT 0,
+  recurring BOOLEAN DEFAULT false,
+  recurrence_rule TEXT,
+  price DECIMAL(10,2) DEFAULT 25.00,
+  status TEXT DEFAULT 'scheduled',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Add RLS policies for all tables
+ALTER TABLE revenue_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_analytics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE media_library ENABLE ROW LEVEL SECURITY;
+ALTER TABLE automation_workflows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cart_recovery_analytics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE support_tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ticket_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE faq_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE instructors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fitness_classes ENABLE ROW LEVEL SECURITY;
+
+-- Create admin policies
+CREATE POLICY "Admins can manage all data" ON revenue_metrics FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON payment_analytics FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON blog_posts FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON media_library FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON automation_workflows FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON cart_recovery_analytics FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON support_tickets FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON ticket_messages FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON faq_items FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON instructors FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admins can manage all data" ON fitness_classes FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+
+-- Public read policies where appropriate
+CREATE POLICY "Public can read published posts" ON blog_posts FOR SELECT USING (status = 'published');
+CREATE POLICY "Public can read FAQs" ON faq_items FOR SELECT USING (true);
+CREATE POLICY "Public can read classes" ON fitness_classes FOR SELECT USING (status = 'scheduled');
+CREATE POLICY "Public can read instructors" ON instructors FOR SELECT USING (true); 

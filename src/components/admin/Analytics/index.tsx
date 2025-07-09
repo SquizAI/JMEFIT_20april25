@@ -1,19 +1,12 @@
 import React from 'react';
+import { CampaignAnalytics } from '../Email/CampaignAnalytics';
+import { FinancialReports } from './FinancialReports';
 
-interface AnalyticsProps {
-  orders: any[];
-  products: any[];
-  dateRange: string;
-}
-
-export function Analytics({ orders, products, dateRange }: AnalyticsProps) {
+export function Analytics() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-4">Analytics Dashboard</h2>
-      <p className="text-gray-600 dark:text-gray-400">
-        Analytics for {dateRange} - {orders.length} orders, {products.length} products
-      </p>
-      {/* TODO: Add charts and analytics */}
+    <div className="space-y-8">
+      <FinancialReports />
+      <CampaignAnalytics />
     </div>
   );
 } 
