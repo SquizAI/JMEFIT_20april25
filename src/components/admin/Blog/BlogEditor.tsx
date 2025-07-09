@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../../lib/supabase';
+import AIBlogWriter from './AIBlogWriter';
 import { 
   FileText, 
   Eye, 
@@ -20,7 +21,8 @@ import {
   Quote,
   Code,
   Heading1,
-  Heading2
+  Heading2,
+  Sparkles
 } from 'lucide-react';
 
 interface BlogPost {
@@ -72,10 +74,7 @@ function BlogEditor() {
     queryFn: async () => {
       let query = supabase
         .from('blog_posts')
-        .select(`
-          *,
-          author:profiles!author_id(full_name, email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (filterStatus !== 'all') {
@@ -552,19 +551,37 @@ function BlogEditor() {
             </div>
           </div>
 
-          {/* Content Editor */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Content</h3>
-              <button
-                type="button"
-                onClick={() => setPreviewMode(!previewMode)}
-                className="flex items-center gap-2 px-3 py-1 text-sm border rounded-lg hover:bg-gray-50"
-              >
-                <Eye className="w-4 h-4" />
-                {previewMode ? 'Edit' : 'Preview'}
-              </button>
+          {/* AI Blog Writer */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <AIBlogWriter 
+                onGenerate={(content) => {
+                  setEditorContent(content.content);
+                  // Update form fields
+                  const titleInput = document.querySelector('input[name="title"]') as HTMLInputElement;
+                  const excerptTextarea = document.querySelector('textarea[name="excerpt"]') as HTMLTextAreaElement;
+                  const seoDescTextarea = document.querySelector('textarea[name="seo_description"]') as HTMLTextAreaElement;
+                  
+                  if (titleInput) titleInput.value = content.title;
+                  if (excerptTextarea) excerptTextarea.value = content.excerpt;
+                  if (seoDescTextarea) seoDescTextarea.value = content.metaDescription;
+                }}
+              />
             </div>
+
+            {/* Content Editor */}
+            <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Content</h3>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode(!previewMode)}
+                  className="flex items-center gap-2 px-3 py-1 text-sm border rounded-lg hover:bg-gray-50"
+                >
+                  <Eye className="w-4 h-4" />
+                  {previewMode ? 'Edit' : 'Preview'}
+                </button>
+              </div>
 
             {/* Formatting Toolbar */}
             {!previewMode && (
@@ -655,6 +672,7 @@ function BlogEditor() {
                 required
               />
             )}
+            </div>
           </div>
 
           {/* SEO Settings */}
