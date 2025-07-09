@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../../lib/supabase';
 import EmailBuilder from './Builder';
+import HtmlTemplateViewer from './HtmlTemplateViewer';
 
 interface EmailCampaign {
   id: string;
@@ -30,7 +31,7 @@ interface RecipientSegment {
 
 function EmailCampaigns() {
   const queryClient = useQueryClient();
-  const [activeView, setActiveView] = useState<'campaigns' | 'builder' | 'analytics'>('campaigns');
+  const [activeView, setActiveView] = useState<'campaigns' | 'builder' | 'analytics' | 'templates'>('campaigns');
   const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(null);
   const [showNewCampaignForm, setShowNewCampaignForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -191,12 +192,34 @@ function EmailCampaigns() {
     );
   }
 
+  if (activeView === 'templates') {
+    return (
+      <div>
+        <div className="mb-4">
+          <button
+            onClick={() => setActiveView('campaigns')}
+            className="px-4 py-2 text-jme-purple hover:text-jme-purple-dark"
+          >
+            ← Back to Campaigns
+          </button>
+        </div>
+        <HtmlTemplateViewer />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Email Campaigns</h2>
         <div className="flex gap-2">
+          <button
+            onClick={() => setActiveView('templates')}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            HTML Templates
+          </button>
           <button
             onClick={() => setActiveView('builder')}
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
