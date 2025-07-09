@@ -538,6 +538,116 @@ function EmailBuilder() {
       ]
     },
     {
+      name: 'Password Reset',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Reset Your Password' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'We received a request to reset your password. Click the button below to create a new password.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'Reset Password', url: '#' }, styles: {} },
+        { id: '4', type: 'text' as const, content: { text: 'If you didn\'t request this, please ignore this email.' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Subscription Confirmation',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Subscription Confirmed!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Your subscription is now active. You have full access to all features.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'Access Dashboard', url: '#' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Thank You',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Thank You!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Thank you for your purchase. We appreciate your trust in JMEFIT.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'View Order', url: '#' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Verification Email',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Verify Your Email' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Please verify your email address to complete your registration.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'Verify Email', url: '#' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Cold Lead Welcome',
+      category: 'marketing' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Discover Your Fitness Potential' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Welcome to JMEFIT! We\'re here to help you start your fitness journey with personalized guidance.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'Learn More', url: '#' }, styles: {} },
+        { id: '4', type: 'text' as const, content: { text: 'Start with our free fitness assessment to get personalized recommendations.' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Warm Lead Welcome',
+      category: 'marketing' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Ready to Transform?' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'You\'ve shown interest in JMEFIT - let\'s take the next step together!' }, styles: {} },
+        { id: '3', type: 'discount' as const, content: { code: 'WELCOME20', description: 'Save 20% on your first month', expiry: 'Valid for 7 days' }, styles: {} },
+        { id: '4', type: 'button' as const, content: { text: 'Start Now', url: '#' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Hot Lead Welcome',
+      category: 'marketing' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Your Transformation Starts Now!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'You\'re just one step away from joining JMEFIT. Here\'s an exclusive offer just for you!' }, styles: {} },
+        { id: '3', type: 'discount' as const, content: { code: 'TRANSFORM30', description: 'Save 30% on any program', expiry: 'Expires in 48 hours' }, styles: {} },
+        { id: '4', type: 'button' as const, content: { text: 'Claim Your Spot', url: '#' }, styles: {} },
+        { id: '5', type: 'text' as const, content: { text: '⏰ Limited spots available - don\'t miss out!' }, styles: {} }
+      ]
+    },
+    {
+      name: 'One-Time Macros Welcome',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Your Custom Macros Are Ready!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Thank you for choosing JMEFIT for your nutrition needs. Your personalized macro calculations are now available.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'View Your Macros', url: '#' }, styles: {} },
+        { id: '4', type: 'text' as const, content: { text: 'Need help implementing your macros? Consider upgrading to our full nutrition program for ongoing support.' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Self-Led Training Welcome',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Welcome to Self-Led Training!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'You now have full access to our training library. Start with our recommended beginner program or explore at your own pace.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'Browse Workouts', url: '#' }, styles: {} },
+        { id: '4', type: 'text' as const, content: { text: 'Pro tip: Set up your workout schedule in the app for automated reminders.' }, styles: {} }
+      ]
+    },
+    {
+      name: 'SHRED Challenge Welcome',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: '🔥 Welcome to the SHRED Challenge!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Get ready for 6 weeks of intense transformation! Your journey to a leaner, stronger you starts now.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'Access Challenge Hub', url: '#' }, styles: {} },
+        { id: '4', type: 'text' as const, content: { text: 'Join our exclusive SHRED community for daily motivation and support from fellow challengers.' }, styles: {} },
+        { id: '5', type: 'button' as const, content: { text: 'Join Community', url: '#' }, styles: {} }
+      ]
+    },
+    {
+      name: 'Nutrition Programs Welcome',
+      category: 'transactional' as const,
+      blocks: [
+        { id: '1', type: 'header' as const, content: { text: 'Your Nutrition Journey Begins!' }, styles: {} },
+        { id: '2', type: 'text' as const, content: { text: 'Welcome to JMEFIT Nutrition! Your personalized meal plans and macro targets are ready.' }, styles: {} },
+        { id: '3', type: 'button' as const, content: { text: 'View Meal Plans', url: '#' }, styles: {} },
+        { id: '4', type: 'text' as const, content: { text: 'Download our app to track your meals, log your progress, and get daily nutrition tips.' }, styles: {} },
+        { id: '5', type: 'button' as const, content: { text: 'Download App', url: '#' }, styles: {} }
+      ]
+    },
+    {
       name: 'Promotional Email',
       category: 'marketing' as const,
       blocks: [
