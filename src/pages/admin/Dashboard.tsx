@@ -63,7 +63,6 @@ function AdminDashboard() {
         .from('orders')
         .select(`
           *,
-          profiles:user_id(email, full_name),
           order_items(
             *,
             products(*)

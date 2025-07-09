@@ -160,7 +160,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
             }`}
           >
             <div className="flex items-center gap-3">
-              {item.icon}
+              <span className="flex-shrink-0">{item.icon}</span>
               <span className="font-medium whitespace-nowrap">{item.label}</span>
             </div>
             <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
@@ -182,7 +182,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
     // For collapsed state with children, just show the parent icon
     if (hasChildren && isCollapsed) {
       return (
-        <div key={item.label} className="relative group">
+        <div key={item.label} className="relative group mb-1">
           <button
             onClick={() => {
               // Click the first child's tab when collapsed
@@ -194,7 +194,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
               active ? 'bg-purple-600 text-white hover:bg-purple-700' : 'text-gray-700 dark:text-gray-300'
             }`}
           >
-            {item.icon}
+            <span className="flex-shrink-0">{item.icon}</span>
           </button>
           
           {/* Tooltip */}
@@ -206,16 +206,16 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
     }
 
     return (
-      <div key={item.label} className="relative group">
+      <div key={item.label} className="relative group mb-1">
         <button
           onClick={() => item.tabId && handleTabClick(item.tabId)}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 ${
             isActive(item.tabId) 
               ? 'bg-purple-600 text-white hover:bg-purple-700' 
               : 'text-gray-700 dark:text-gray-300'
-          } ${level > 0 && !isCollapsed ? 'pl-12' : ''} ${isCollapsed ? 'justify-center' : ''}`}
+          } ${level > 0 && !isCollapsed ? 'pl-12' : ''} ${isCollapsed ? 'justify-center px-2' : ''}`}
         >
-          {item.icon}
+          <span className="flex-shrink-0">{item.icon}</span>
           {!isCollapsed && <span className="font-medium whitespace-nowrap">{item.label}</span>}
         </button>
         
