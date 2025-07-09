@@ -1,10 +1,20 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 exports.handler = async (event, context) => {
+  // Check if API key is available
+  if (!process.env.OPENAI_API_KEY) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ 
+        error: 'OpenAI API key not configured',
+        details: 'Please set OPENAI_API_KEY in Netlify environment variables'
+      })
+    };
+  }
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,

@@ -26,32 +26,81 @@ exports.handler = async (event, context) => {
 
   const { template } = event.queryStringParameters || {};
 
-  if (!template || !emailTemplates[template]) {
+  if (!template) {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Invalid template name' })
     };
   }
 
-  try {
-    // In development, read from src/emails
-    // In production, these would be bundled or stored elsewhere
-    const templatePath = path.join(__dirname, '../../src/emails', emailTemplates[template]);
-    const htmlContent = await fs.readFile(templatePath, 'utf-8');
+  // For now, return a placeholder HTML that indicates which template was requested
+  // In production, these would be stored in a database or CDN
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Email Template: ${template}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          border-radius: 10px;
+        }
+        .content {
+          padding: 30px;
+          background: #f8f9fa;
+          margin-top: 20px;
+          border-radius: 10px;
+        }
+        .button {
+          display: inline-block;
+          padding: 12px 30px;
+          background: #667eea;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+          margin-top: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>JMEFIT Email Template</h1>
+        <p>Template: ${template}</p>
+      </div>
+      <div class="content">
+        <h2>This is a placeholder for the ${template} template</h2>
+        <p>The actual email templates are beautifully designed HTML files with:</p>
+        <ul>
+          <li>Purple gradient headers</li>
+          <li>Responsive design</li>
+          <li>Call-to-action buttons</li>
+          <li>Professional typography</li>
+        </ul>
+        <p>To view the actual templates, they need to be stored in a database or CDN accessible to Netlify functions.</p>
+        <a href="https://jmefit.com" class="button">Visit JMEFIT</a>
+      </div>
+    </body>
+    </html>
+  `;
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'text/html',
-        'Cache-Control': 'public, max-age=3600'
-      },
-      body: htmlContent
-    };
-  } catch (error) {
-    console.error('Error reading template:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to load template' })
-    };
-  }
+  return {
+    statusCode: 200,
+    headers: {
+      'Content-Type': 'text/html',
+      'Cache-Control': 'public, max-age=3600'
+    },
+    body: htmlContent
+  };
 }; 
