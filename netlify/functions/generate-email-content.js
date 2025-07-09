@@ -1,8 +1,4 @@
-const OpenAI = require('openai');
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Sample content from existing JMEFIT emails
 const brandVoice = {
@@ -37,6 +33,19 @@ exports.handler = async (event, context) => {
     };
   }
 
+  // Check if API key is available
+  if (!process.env.VITE_GEMINI_API_KEY) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ 
+        error: 'Gemini API key not configured',
+        details: 'Please set VITE_GEMINI_API_KEY in Netlify environment variables'
+      })
+    };
+  }
+
+  const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
+
   try {
     const { systemPrompt, userPrompt, emailType, tone, includeDiscount } = JSON.parse(event.body);
 
@@ -54,25 +63,31 @@ ${includeDiscount ? '- discountCode: A discount code (uppercase, 6-10 characters
 Email type: ${emailType}
 User request: ${userPrompt}
 
-Make the content engaging, personal, and focused on transformation and results. Use "you" language and be conversational.`;
+Make the content engaging, personal, and focused on transformation and results. Use "you" language and be conversational.
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a fitness and nutrition email copywriter. Generate compelling, conversion-focused email content that motivates and inspires action.'
-        },
-        {
-          role: 'user',
-          content: fullPrompt
-        }
-      ],
-      temperature: 0.7,
-      response_format: { type: "json_object" }
-    });
+IMPORTANT: Return ONLY the JSON object, no additional text or markdown formatting.`;
 
-    const generatedContent = JSON.parse(completion.choices[0].message.content);
+    // Use Gemini Pro model
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    
+    const result = await model.generateContent(fullPrompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Parse the JSON response
+    let generatedContent;
+    try {
+      // Try to extract JSON from the response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        generatedContent = JSON.parse(jsonMatch[0]);
+      } else {
+        generatedContent = JSON.parse(text);
+      }
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response:', text);
+      throw new Error('Failed to parse AI response');
+    }
 
     // Add brand-appropriate defaults if needed
     if (!generatedContent.headerText) {

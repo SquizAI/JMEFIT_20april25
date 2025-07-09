@@ -1,20 +1,19 @@
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 exports.handler = async (event, context) => {
   // Check if API key is available
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.VITE_GEMINI_API_KEY) {
     return {
       statusCode: 500,
       body: JSON.stringify({ 
-        error: 'OpenAI API key not configured',
-        details: 'Please set OPENAI_API_KEY in Netlify environment variables'
+        error: 'Gemini API key not configured',
+        details: 'Please set VITE_GEMINI_API_KEY in Netlify environment variables'
       })
     };
   }
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
+  const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -55,38 +54,36 @@ Format the response as JSON with these fields:
   "excerpt": "...",
   "content": "...",
   "metaDescription": "..."
-}`;
+}
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional fitness and nutrition content writer with expertise in creating engaging, SEO-optimized blog posts. Always format your response as valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 2000
-    });
+IMPORTANT: Return ONLY the JSON object, no additional text or markdown formatting.`;
 
-    const content = response.choices[0].message.content;
+    // Use Gemini Pro model
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
     
     // Parse the JSON response
     let blogData;
     try {
-      blogData = JSON.parse(content);
-    } catch (parseError) {
-      // If parsing fails, try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Try to extract JSON from the response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         blogData = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error('Failed to parse AI response');
+        blogData = JSON.parse(text);
       }
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response:', text);
+      // Fallback response if parsing fails
+      blogData = {
+        title: topic,
+        excerpt: `Learn about ${topic} with JMEFIT's expert guidance.`,
+        content: `<p>Content generation failed. Please try again.</p>`,
+        metaDescription: `${topic} - JMEFIT Fitness & Nutrition Guide`
+      };
     }
 
     return {
