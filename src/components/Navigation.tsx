@@ -72,77 +72,84 @@ function Navigation() {
           <div className="hidden md:flex md:items-center space-x-6">
             <Link
               to="/"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Home</span>
             </Link>
             <Link
               to="/programs"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/programs')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/programs') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Programs</span>
             </Link>
             <Link
               to="/monthly-app"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/monthly-app')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/monthly-app') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Monthly App</span>
             </Link>
             <Link
               to="/nutrition-programs"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/nutrition-programs')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/nutrition-programs') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Nutrition Programs</span>
             </Link>
             <Link
               to="/shop"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/shop')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/shop') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Shop</span>
             </Link>
             <Link
               to="/community"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/community')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/community') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Community</span>
             </Link>
             <Link
               to="/blog"
-              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md ${
+              className={`relative text-sm font-medium transition-all duration-300 group py-2 px-3 rounded-md focus:ring-2 focus:ring-purple-600 focus:outline-none ${
                 isActive('/blog')
                   ? 'text-[#FF1493] bg-pink-50/50'
                   : 'text-gray-600 hover:text-[#FF1493] hover:bg-pink-50/30'
               }`}
+              aria-current={isActive('/blog') ? 'page' : undefined}
             >
               <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-[#FF1493] transition-all duration-300 group-hover:w-full" />
               <span className="relative z-10 transition-transform duration-300 group-hover:translate-y-[-1px]">Blog</span>
@@ -200,11 +207,12 @@ function Navigation() {
               <div className="relative">
                 <button
                   onClick={() => setIsCartOpen(!isCartOpen)}
-                  className="text-jme-purple hover:text-purple-700 transition-all duration-300 transform hover:scale-110 hover:rotate-3 relative"
+                  className="text-jme-purple hover:text-purple-700 transition-all duration-300 transform hover:scale-110 hover:rotate-3 relative min-w-11 min-h-11 p-2 flex items-center justify-center focus:ring-2 focus:ring-purple-600 focus:outline-none rounded"
+                  aria-label={`Shopping cart with ${items.length} item${items.length !== 1 ? 's' : ''}`}
                 >
-                  <ShoppingCart className="w-5 h-5" />
+                  <ShoppingCart className="w-6 h-6" aria-hidden="true" />
                   {items.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-jme-purple to-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse shadow-md">
+                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-jme-purple to-purple-600 text-white text-xs min-w-5 min-h-5 px-1 rounded-full flex items-center justify-center animate-pulse shadow-md" aria-hidden="true">
                       {items.length}
                     </span>
                   )}
@@ -216,21 +224,23 @@ function Navigation() {
                 )}
               </div>
               
-              <a 
-                href="https://www.instagram.com/jmefit_/" 
-                target="_blank" 
+              <a
+                href="https://www.instagram.com/jmefit_/"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#E1306C] hover:text-[#C13584] transition-all duration-300 transform hover:scale-110 hover:rotate-3"
+                className="text-[#E1306C] hover:text-[#C13584] transition-all duration-300 transform hover:scale-110 hover:rotate-3 min-w-11 min-h-11 p-2 flex items-center justify-center focus:ring-2 focus:ring-purple-600 focus:outline-none rounded"
+                aria-label="Follow JMEFit on Instagram (opens in new tab)"
               >
-                <Instagram className="w-5 h-5" />
+                <Instagram className="w-6 h-6" aria-hidden="true" />
               </a>
-              <a 
-                href="https://facebook.com/jmefit" 
-                target="_blank" 
+              <a
+                href="https://facebook.com/jmefit"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#1877F2] hover:text-[#166FE5] transition-all duration-300 transform hover:scale-110 hover:rotate-3"
+                className="text-[#1877F2] hover:text-[#166FE5] transition-all duration-300 transform hover:scale-110 hover:rotate-3 min-w-11 min-h-11 p-2 flex items-center justify-center focus:ring-2 focus:ring-purple-600 focus:outline-none rounded"
+                aria-label="Follow JMEFit on Facebook (opens in new tab)"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-6 h-6" aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -239,24 +249,24 @@ function Navigation() {
           <div className="flex items-center md:hidden">
             <div className="flex items-center gap-2">
               <Link
-                to="/checkout"
-                className="relative p-2 rounded-md text-jme-purple hover:text-white hover:bg-jme-purple transition-colors duration-200"
+                to="/checkout/stripe"
+                className="relative min-w-11 min-h-11 p-2 rounded-md text-jme-purple hover:text-white hover:bg-jme-purple transition-colors duration-200 flex items-center justify-center"
                 aria-label="Go to checkout"
               >
                 <ShoppingCart className="w-6 h-6" />
                 {items.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-h-5 min-w-5 px-1 flex items-center justify-center">
                     {items.length}
                   </span>
                 )}
               </Link>
               <button
                 onClick={toggleMobileMenu}
-                className="inline-flex items-center justify-center p-2 rounded-md text-jme-purple hover:text-white hover:bg-jme-purple transition-all duration-300 transform hover:scale-105 btn-hover-effect"
+                className="inline-flex items-center justify-center min-w-11 min-h-11 p-2 rounded-md text-jme-purple hover:text-white hover:bg-jme-purple transition-all duration-300 transform hover:scale-105 btn-hover-effect focus:ring-2 focus:ring-purple-600 focus:outline-none"
                 aria-expanded={isOpen}
                 aria-label="Toggle navigation menu"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-6 h-6" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -277,10 +287,10 @@ function Navigation() {
           </Link>
           <button
             onClick={toggleMobileMenu}
-            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300 hover:rotate-90"
-            aria-label="Close menu"
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300 hover:rotate-90 focus:ring-2 focus:ring-purple-600 focus:outline-none min-w-11 min-h-11 flex items-center justify-center"
+            aria-label="Close navigation menu"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6" aria-hidden="true" />
           </button>
         </div>
           
@@ -393,19 +403,21 @@ function Navigation() {
           </div>
           
           <div className="p-4 border-t flex justify-center space-x-6 animate-fadeIn" style={{ animationDelay: '450ms' }}>
-            <a 
-              href="https://www.instagram.com/jmefit_/" 
-              target="_blank" 
+            <a
+              href="https://www.instagram.com/jmefit_/"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-[#E1306C] hover:text-[#C13584] transition-all p-2"
+              className="text-[#E1306C] hover:text-[#C13584] transition-all min-w-11 min-h-11 p-2 flex items-center justify-center"
+              aria-label="Follow us on Instagram"
             >
               <Instagram className="w-6 h-6" />
             </a>
-            <a 
-              href="https://facebook.com/jmefit" 
-              target="_blank" 
+            <a
+              href="https://facebook.com/jmefit"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-[#1877F2] hover:text-[#166FE5] transition-all p-2"
+              className="text-[#1877F2] hover:text-[#166FE5] transition-all min-w-11 min-h-11 p-2 flex items-center justify-center"
+              aria-label="Follow us on Facebook"
             >
               <Facebook className="w-6 h-6" />
             </a>

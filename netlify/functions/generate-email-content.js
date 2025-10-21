@@ -34,17 +34,17 @@ exports.handler = async (event, context) => {
   }
 
   // Check if API key is available
-  if (!process.env.VITE_GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Gemini API key not configured',
-        details: 'Please set VITE_GEMINI_API_KEY in Netlify environment variables'
+        details: 'Please set GEMINI_API_KEY in Netlify environment variables'
       })
     };
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
   try {
     const { systemPrompt, userPrompt, emailType, tone, includeDiscount } = JSON.parse(event.body);
@@ -67,8 +67,8 @@ Make the content engaging, personal, and focused on transformation and results. 
 
 IMPORTANT: Return ONLY the JSON object, no additional text or markdown formatting.`;
 
-    // Use Gemini Pro model
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use Gemini 2.5 Flash model (latest - Oct 2025)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     
     const result = await model.generateContent(fullPrompt);
     const response = await result.response;

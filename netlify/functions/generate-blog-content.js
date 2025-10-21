@@ -1,18 +1,20 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
+const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   // Check if API key is available
-  if (!process.env.VITE_GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return {
       statusCode: 500,
       body: JSON.stringify({ 
         error: 'Gemini API key not configured',
-        details: 'Please set VITE_GEMINI_API_KEY in Netlify environment variables'
+        details: 'Please set GEMINI_API_KEY in Netlify environment variables'
       })
     };
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
   if (event.httpMethod !== 'POST') {
     return {
@@ -22,7 +24,14 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { topic, tone, length, keywords, brand } = JSON.parse(event.body);
+    const { topic, tone, length, keywords, brand, generateImage } = JSON.parse(event.body);
+
+    if (!topic) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Topic is required' })
+      };
+    }
 
     // Determine word count based on length
     const wordCounts = {
@@ -42,56 +51,106 @@ Keywords to include: ${keywords?.join(', ') || 'fitness, health, wellness'}
 
 Brand Voice: JMEFIT empowers individuals to transform their lives through personalized fitness and nutrition guidance. We focus on sustainable lifestyle changes, not quick fixes.
 
-Please generate:
-1. An engaging title
-2. A compelling excerpt (2-3 sentences)
-3. The full blog post content in HTML format (use proper HTML tags like <p>, <h2>, <h3>, <ul>, <li>, etc.)
-4. A meta description for SEO (150-160 characters)
+Generate a complete blog post with all necessary metadata for SEO and content management.`;
 
-Format the response as JSON with these fields:
-{
-  "title": "...",
-  "excerpt": "...",
-  "content": "...",
-  "metaDescription": "..."
-}
+    // Define the response schema for structured output
+    const responseSchema = {
+      type: "object",
+      properties: {
+        title: { 
+          type: "string",
+          description: "An engaging blog post title"
+        },
+        slug: { 
+          type: "string",
+          description: "URL-friendly slug based on the title"
+        },
+        excerpt: { 
+          type: "string",
+          description: "A compelling 2-3 sentence excerpt"
+        },
+        content: { 
+          type: "string",
+          description: "Full blog post content in HTML format with proper tags like <p>, <h2>, <h3>, <ul>, <li>"
+        },
+        metaDescription: { 
+          type: "string",
+          description: "SEO meta description (150-160 characters)"
+        },
+        category: { 
+          type: "string",
+          enum: ["workout", "nutrition", "lifestyle", "mindset", "success-stories", "tips"],
+          description: "Blog post category"
+        },
+        tags: { 
+          type: "array",
+          items: { type: "string" },
+          description: "5-8 relevant tags for the post"
+        },
+        seoKeywords: { 
+          type: "array",
+          items: { type: "string" },
+          description: "3-5 SEO keywords different from tags"
+        }
+      },
+      required: ["title", "slug", "excerpt", "content", "metaDescription", "category", "tags", "seoKeywords"],
+      propertyOrdering: ["title", "slug", "excerpt", "content", "metaDescription", "category", "tags", "seoKeywords"]
+    };
 
-IMPORTANT: Return ONLY the JSON object, no additional text or markdown formatting.`;
-
-    // Use Gemini Pro model
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use gemini-2.5-flash with structured output
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.5-flash',
+    });
     
-    const result = await model.generateContent(prompt);
+    // Configure generation with structured output
+    const result = await model.generateContent({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema
+      }
+    });
+    
     const response = await result.response;
     const text = response.text();
     
     // Parse the JSON response
     let blogData;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        blogData = JSON.parse(jsonMatch[0]);
-      } else {
-        blogData = JSON.parse(text);
-      }
+      blogData = JSON.parse(text);
     } catch (parseError) {
       console.error('Failed to parse Gemini response:', text);
-      // Fallback response if parsing fails
-      blogData = {
-        title: topic,
-        excerpt: `Learn about ${topic} with JMEFIT's expert guidance.`,
-        content: `<p>Content generation failed. Please try again.</p>`,
-        metaDescription: `${topic} - JMEFIT Fitness & Nutrition Guide`
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ 
+          error: 'Failed to parse blog content',
+          details: parseError.message 
+        })
       };
     }
+
+    // For now, always use placeholder image to avoid timeouts
+    // Image generation can be done separately if needed
+    const generatedImage = {
+      url: 'https://jmefit.com/images/JMEFIT_photo.png',
+      prompt: 'Using placeholder image - generate separately if needed',
+      size: "1536x1024",
+      model: 'placeholder'
+    };
+
+    // Add the image to the response
+    const responseData = {
+      ...blogData,
+      generatedImage,
+      status: 'draft' // Always start as draft
+    };
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(blogData)
+      body: JSON.stringify(responseData)
     };
   } catch (error) {
     console.error('Error generating blog content:', error);

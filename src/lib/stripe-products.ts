@@ -300,4 +300,68 @@ export const validateAllPriceIds = (): { productKey: string; interval: string; e
   });
 
   return errors;
+};
+
+/**
+ * Validate a price ID with the Stripe API via Netlify function
+ * This checks if the price actually exists and is active in Stripe
+ */
+export const validatePriceIdWithStripe = async (priceId: string): Promise<{
+  valid: boolean;
+  price: any | null;
+  error: string | null;
+}> => {
+  try {
+    const response = await fetch('/.netlify/functions/validate-stripe-price', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ priceId }),
+    });
+
+    if (!response.ok) {
+      return {
+        valid: false,
+        price: null,
+        error: `HTTP error ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to validate price ID with Stripe:', error);
+    return {
+      valid: false,
+      price: null,
+      error: error instanceof Error ? error.message : 'Network error',
+    };
+  }
+};
+
+/**
+ * Fetch all Stripe prices from the API
+ * This returns real prices from Stripe, not hard-coded values
+ */
+export const fetchStripePrices = async (): Promise<{
+  prices: any;
+  savings: any;
+  cached: boolean;
+  timestamp: string;
+} | null> => {
+  try {
+    const response = await fetch('/.netlify/functions/get-stripe-prices');
+
+    if (!response.ok) {
+      console.error('Failed to fetch Stripe prices:', response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching Stripe prices:', error);
+    return null;
+  }
 }; 

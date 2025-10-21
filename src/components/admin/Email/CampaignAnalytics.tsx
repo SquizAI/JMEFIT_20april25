@@ -70,20 +70,27 @@ export function CampaignAnalytics() {
       
       const { data, error } = await supabase
         .from('email_campaigns')
-        .select(`
-          *,
-          email_campaign_metrics(*)
-        `)
+        .select('*')
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Process campaign data with metrics
-      return data?.map(campaign => ({
-        ...campaign,
-        metrics: campaign.email_campaign_metrics?.[0] || null
+      // Fetch metrics separately for each campaign
+      const campaignsWithMetrics = await Promise.all((data || []).map(async (campaign) => {
+        const { data: metrics } = await supabase
+          .from('email_campaign_metrics')
+          .select('*')
+          .eq('campaign_id', campaign.id)
+          .single();
+
+        return {
+          ...campaign,
+          metrics: metrics || null
+        };
       }));
+
+      return campaignsWithMetrics;
     }
   });
 

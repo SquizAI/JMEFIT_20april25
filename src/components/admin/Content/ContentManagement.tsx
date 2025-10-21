@@ -108,7 +108,7 @@ export function ContentManagement() {
       } else {
         const { error } = await supabase
           .from('blog_posts')
-          .insert([{ ...post, author_id: (await supabase.auth.getUser()).data.user?.id }]);
+          .insert({ ...post, author_id: (await supabase.auth.getUser()).data.user?.id });
         if (error) throw error;
       }
     },

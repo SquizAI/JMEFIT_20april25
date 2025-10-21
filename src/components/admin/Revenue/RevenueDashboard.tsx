@@ -86,27 +86,33 @@ function RevenueDashboard() {
       // Fetch orders within date range
       const { data: orders, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items(
-            quantity,
-            price,
-            products(name, category)
-          )
-        `)
+        .select('*')
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
         .eq('status', 'completed');
 
       if (error) throw error;
 
-      // Calculate metrics
-      const totalRevenue = orders?.reduce((sum, order) => 
-        sum + (order.order_items?.reduce((itemSum: number, item: any) => 
-          itemSum + (item.price * item.quantity), 0) || 0), 0) || 0;
+      // Fetch order items with product details for each order
+      const ordersWithItems = await Promise.all((orders || []).map(async (order) => {
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('*, products(*)')
+          .eq('order_id', order.id);
+        
+        return {
+          ...order,
+          order_items: orderItems || []
+        };
+      }));
 
-      const totalOrders = orders?.length || 0;
-      const uniqueCustomers = new Set(orders?.map(o => o.user_id)).size;
+      // Calculate metrics
+      const totalRevenue = ordersWithItems?.reduce((sum, order) => 
+        sum + (order.order_items?.reduce((itemSum: number, item: any) => 
+          itemSum + (item.amount || (item.price * item.quantity)), 0) || 0), 0) || 0;
+
+      const totalOrders = ordersWithItems?.length || 0;
+      const uniqueCustomers = new Set(ordersWithItems?.map(o => o.user_id)).size;
       const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
       // Get previous period data for comparison
@@ -132,23 +138,30 @@ function RevenueDashboard() {
 
       const { data: previousOrders } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items(
-            quantity,
-            price
-          )
-        `)
+        .select('*')
         .gte('created_at', previousStartDate.toISOString())
         .lte('created_at', previousEndDate.toISOString())
         .eq('status', 'completed');
 
-      const previousRevenue = previousOrders?.reduce((sum, order) => 
-        sum + (order.order_items?.reduce((itemSum: number, item: any) => 
-          itemSum + (item.price * item.quantity), 0) || 0), 0) || 0;
+      // Fetch order items for previous orders
+      const previousOrdersWithItems = await Promise.all((previousOrders || []).map(async (order) => {
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('*')
+          .eq('order_id', order.id);
+        
+        return {
+          ...order,
+          order_items: orderItems || []
+        };
+      }));
 
-      const previousOrderCount = previousOrders?.length || 0;
-      const previousCustomers = new Set(previousOrders?.map(o => o.user_id)).size;
+      const previousRevenue = previousOrdersWithItems?.reduce((sum, order) => 
+        sum + (order.order_items?.reduce((itemSum: number, item: any) => 
+          itemSum + (item.amount || (item.price * item.quantity)), 0) || 0), 0) || 0;
+
+      const previousOrderCount = previousOrdersWithItems?.length || 0;
+      const previousCustomers = new Set(previousOrdersWithItems?.map(o => o.user_id)).size;
 
       // Calculate changes
       const revenueChange = previousRevenue > 0 
@@ -171,9 +184,9 @@ function RevenueDashboard() {
           ordersChange,
           customersChange
         },
-        orders,
-        timeSeriesData: generateTimeSeriesData(orders || [], dateRange),
-        productRevenue: calculateProductRevenue(orders || [])
+        orders: ordersWithItems,
+        timeSeriesData: generateTimeSeriesData(ordersWithItems || [], dateRange),
+        productRevenue: calculateProductRevenue(ordersWithItems || [])
       };
     }
   });

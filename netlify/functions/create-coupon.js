@@ -56,6 +56,29 @@ exports.handler = async (event, context) => {
     // Create the coupon in Stripe
     const coupon = await stripe.coupons.create(couponParams);
 
+    // Create a promotion code for the coupon so customers can use it
+    const promotionCodeParams = {
+      coupon: coupon.id,
+      code: coupon.id, // Use the coupon ID as the promotion code
+      active: true
+    };
+
+    // Add expiration date to promotion code if provided
+    if (redeem_by) {
+      promotionCodeParams.expires_at = redeem_by;
+    }
+
+    const promotionCode = await stripe.promotionCodes.create(promotionCodeParams);
+
+    // Return both coupon and promotion code info
+    const response = {
+      coupon: coupon,
+      promotionCode: promotionCode,
+      customerCode: promotionCode.code, // This is what customers will enter
+      success: true,
+      message: `Coupon and promotion code created successfully. Customers can use code: ${promotionCode.code}`
+    };
+
     return {
       statusCode: 200,
       headers: {
@@ -63,7 +86,7 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type'
       },
-      body: JSON.stringify(coupon)
+      body: JSON.stringify(response)
     };
   } catch (error) {
     console.error('Error creating coupon:', error);

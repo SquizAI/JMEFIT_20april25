@@ -103,8 +103,8 @@ export default function StripeCheckout() {
           items: itemsForCheckout,
           userId: localStorage.getItem('userId'),
           customerEmail: localStorage.getItem('userEmail') || undefined,
-          successUrl: `${window.location.origin}/checkout/success`,
-          cancelUrl: `${window.location.origin}/checkout?canceled=true`,
+          successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/checkout/stripe?canceled=true`,
           metadata: {
             source: 'web_app',
             cartItemCount: itemsForCheckout.length

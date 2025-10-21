@@ -10,46 +10,76 @@ export type Price = Database['public']['Tables']['prices']['Row'];
  */
 export async function getProducts() {
   try {
-    // First get all active products
-    const { data: products, error: productsError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('active', true as any)
-      .order('created_at', { ascending: false });
-    
-    if (productsError) {
-      console.error('Database error details:', {
-        message: productsError.message || 'Unknown error',
-        code: productsError.code || 'Unknown code',
-        details: productsError.details || 'No details'
-      });
-      throw new Error(`Database error: ${productsError.message || 'Unknown error'}`);
-    }
-    
+    // Import error handling utilities
+    const { handleSupabaseError } = await import('../utils/supabase-errors');
+    const { retrySupabaseQuery } = await import('../utils/retry-logic');
+
+    // Fetch products with retry logic
+    const products = await retrySupabaseQuery(
+      () => supabase
+        .from('products')
+        .select('*')
+        .eq('active', true as any)
+        .order('created_at', { ascending: false }),
+      {
+        maxRetries: 3,
+        onRetry: (attempt, error) => {
+          console.warn(`Retrying getProducts (attempt ${attempt}):`, error.message);
+        }
+      }
+    );
+
     // If no products, return empty array
     if (!products || products.length === 0) return [];
-    
+
     // For each product, get its prices separately
     const productsWithPrices = await Promise.all(
       products.map(async (product) => {
-        const { data: prices, error: pricesError } = await supabase
-          .from('prices')
-          .select('*')
-          .eq('product_id', product.id);
-        
-        if (pricesError) console.error('Error fetching prices for product', product.id, pricesError);
-        
-        return {
-          ...product,
-          prices: prices || []
-        };
+        try {
+          const prices = await retrySupabaseQuery(
+            () => supabase
+              .from('prices')
+              .select('*')
+              .eq('product_id', product.id),
+            { maxRetries: 2 } // Fewer retries for sub-queries
+          );
+
+          return {
+            ...product,
+            prices: prices || []
+          };
+        } catch (error) {
+          // Log but don't fail - return product without prices
+          const classified = handleSupabaseError(error, {
+            operation: 'fetch_product_prices',
+            table: 'prices',
+            additionalInfo: { product_id: product.id }
+          });
+          console.warn(`Failed to fetch prices for product ${product.id}:`, classified.userMessage);
+
+          return {
+            ...product,
+            prices: []
+          };
+        }
       })
     );
 
     return productsWithPrices;
   } catch (error) {
-    console.error('Error getting products:', error);
-    return [];
+    // Import error handling utilities
+    const { handleSupabaseError } = await import('../utils/supabase-errors');
+
+    const classified = handleSupabaseError(error, {
+      operation: 'fetch_products',
+      table: 'products'
+    });
+
+    // Log the classified error
+    console.error('Failed to fetch products:', classified.logMessage);
+
+    // Throw user-friendly error
+    throw new Error(classified.userMessage);
   }
 }
 

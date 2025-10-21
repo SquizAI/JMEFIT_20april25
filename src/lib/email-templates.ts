@@ -1,153 +1,176 @@
-export interface EmailTemplateConfig {
+// Email template loader - reads HTML templates and makes them available to the system
+import welcomeHtml from '../emails/welcome.html?raw';
+import passwordResetHtml from '../emails/password-reset.html?raw';
+import verificationHtml from '../emails/verification.html?raw';
+import subscriptionConfirmationHtml from '../emails/subscription-confirmation.html?raw';
+import thankYouHtml from '../emails/thank-you.html?raw';
+import coldLeadWelcomeHtml from '../emails/cold-lead-welcome.html?raw';
+import warmLeadWelcomeHtml from '../emails/warm-lead-welcome.html?raw';
+import hotLeadWelcomeHtml from '../emails/hot-lead-welcome.html?raw';
+import oneTimeMacrosWelcomeHtml from '../emails/one-time-macros-welcome.html?raw';
+import selfLedTrainingWelcomeHtml from '../emails/self-led-training-welcome.html?raw';
+import shredChallengeWelcomeHtml from '../emails/shred-challenge-welcome.html?raw';
+import nutritionProgramsWelcomeHtml from '../emails/nutrition-programs-welcome.html?raw';
+
+export interface EmailTemplate {
   id: string;
   name: string;
   subject: string;
-  category: 'transactional' | 'marketing' | 'notification' | 'lead-nurture';
-  description: string;
-  htmlFile: string;
+  category: 'transactional' | 'marketing' | 'program' | 'notification';
+  html: string;
   variables: string[];
-  tags: string[];
+  description?: string;
 }
 
-export const EMAIL_TEMPLATES: EmailTemplateConfig[] = [
-  // Transactional Emails
-  {
-    id: 'verification',
-    name: 'Email Verification',
-    subject: 'Verify Your JMEFIT Account',
+export const emailTemplates: Record<string, EmailTemplate> = {
+  // Transactional Templates
+  welcome: {
+    id: 'welcome',
+    name: 'Welcome Email',
+    subject: 'Welcome to JMEFit!',
     category: 'transactional',
-    description: 'Sent when a user signs up to verify their email address',
-    htmlFile: '/src/emails/verification.html',
-    variables: ['verificationLink', 'userName'],
-    tags: ['signup', 'verification']
+    description: 'Welcome new users to JMEFit',
+    variables: ['logoUrl', 'fullName', 'dashboardUrl', 'unsubscribeUrl', 'privacyUrl'],
+    html: welcomeHtml
   },
-  {
+  
+  'password-reset': {
     id: 'password-reset',
     name: 'Password Reset',
-    subject: 'Reset Your JMEFIT Password',
+    subject: 'Reset Your JMEFit Password',
     category: 'transactional',
-    description: 'Sent when a user requests a password reset',
-    htmlFile: '/src/emails/password-reset.html',
-    variables: ['resetLink', 'userName', 'expirationTime'],
-    tags: ['security', 'password']
+    description: 'Password reset request email',
+    variables: ['logoUrl', 'resetPasswordUrl', 'privacyUrl'],
+    html: passwordResetHtml
   },
-  {
-    id: 'welcome',
-    name: 'Welcome to JMEFIT',
-    subject: 'Welcome to Your Fitness Journey!',
+  
+  verification: {
+    id: 'verification',
+    name: 'Email Verification',
+    subject: 'Verify Your JME FIT Account',
     category: 'transactional',
-    description: 'General welcome email for new users',
-    htmlFile: '/src/emails/welcome.html',
-    variables: ['userName'],
-    tags: ['onboarding', 'welcome']
+    description: 'Email verification for new accounts',
+    variables: ['logoUrl', 'userName', 'verificationUrl'],
+    html: verificationHtml
   },
-  {
+  
+  'subscription-confirmation': {
     id: 'subscription-confirmation',
     name: 'Subscription Confirmation',
-    subject: 'Your JMEFIT Subscription is Active!',
+    subject: 'Your JMEFit Subscription is Active!',
     category: 'transactional',
-    description: 'Confirms successful subscription activation',
-    htmlFile: '/src/emails/subscription-confirmation.html',
-    variables: ['userName', 'planName', 'nextBillingDate', 'amount'],
-    tags: ['subscription', 'payment']
+    description: 'Confirm subscription activation',
+    variables: ['logoUrl', 'fullName', 'planName', 'billingCycle', 'amount', 'nextBillingDate', 'dashboardUrl', 'unsubscribeUrl', 'privacyUrl'],
+    html: subscriptionConfirmationHtml
   },
-  {
+  
+  'thank-you': {
     id: 'thank-you',
     name: 'Thank You',
     subject: 'Thank You for Your Purchase!',
     category: 'transactional',
-    description: 'General thank you email after purchase',
-    htmlFile: '/src/emails/thank-you.html',
-    variables: ['userName', 'orderDetails'],
-    tags: ['purchase', 'confirmation']
+    description: 'Thank you for purchase',
+    variables: ['logoUrl', 'fullName', 'orderNumber', 'items', 'shipping', 'total', 'orderTrackingUrl', 'unsubscribeUrl', 'privacyUrl'],
+    html: thankYouHtml
   },
-
-  // Lead Nurture Emails
-  {
+  
+  // Marketing Templates
+  'cold-lead-welcome': {
     id: 'cold-lead-welcome',
     name: 'Cold Lead Welcome',
-    subject: 'Start Your Fitness Transformation Today',
-    category: 'lead-nurture',
-    description: 'Welcome email for cold leads with educational content',
-    htmlFile: '/src/emails/cold-lead-welcome.html',
-    variables: ['firstName'],
-    tags: ['cold-lead', 'educational', 'nurture']
+    subject: 'Welcome to JME FIT! Your Fitness Journey Starts Here',
+    category: 'marketing',
+    description: 'Welcome email for new cold leads',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: coldLeadWelcomeHtml
   },
-  {
+  
+  'warm-lead-welcome': {
     id: 'warm-lead-welcome',
     name: 'Warm Lead Welcome',
-    subject: 'Your Personalized Fitness Journey Awaits',
-    category: 'lead-nurture',
-    description: 'Welcome email for warm leads with testimonials and offers',
-    htmlFile: '/src/emails/warm-lead-welcome.html',
-    variables: ['firstName', 'recommendedProgram'],
-    tags: ['warm-lead', 'testimonials', 'nurture']
+    subject: '🌟 Ready to Take the Next Step with JME FIT?',
+    category: 'marketing',
+    description: 'Welcome email for warm leads with discount',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: warmLeadWelcomeHtml
   },
-  {
+  
+  'hot-lead-welcome': {
     id: 'hot-lead-welcome',
     name: 'Hot Lead Welcome',
-    subject: 'Exclusive Offer: Start Your JMEFIT Journey Today',
-    category: 'lead-nurture',
-    description: 'Welcome email for hot leads with limited-time offers',
-    htmlFile: '/src/emails/hot-lead-welcome.html',
-    variables: ['firstName', 'discountCode', 'offerExpiry'],
-    tags: ['hot-lead', 'urgency', 'discount']
-  },
-
-  // Program-Specific Welcome Emails
-  {
-    id: 'nutrition-programs-welcome',
-    name: 'Nutrition Programs Welcome',
-    subject: 'Welcome to JMEFIT Nutrition Coaching',
+    subject: '🔥 Your Perfect JME FIT Program is Ready!',
     category: 'marketing',
-    description: 'Welcome email for nutrition program subscribers',
-    htmlFile: '/src/emails/nutrition-programs-welcome.html',
-    variables: ['firstName', 'programName', 'coachName'],
-    tags: ['nutrition', 'program-welcome']
+    description: 'Urgent welcome email for hot leads',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: hotLeadWelcomeHtml
   },
-  {
-    id: 'self-led-training-welcome',
-    name: 'Self-Led Training Welcome',
-    subject: 'Your Self-Led Training Journey Begins',
-    category: 'marketing',
-    description: 'Welcome email for self-led training program',
-    htmlFile: '/src/emails/self-led-training-welcome.html',
-    variables: ['firstName', 'trainingPlanName'],
-    tags: ['training', 'self-led', 'program-welcome']
-  },
-  {
-    id: 'shred-challenge-welcome',
-    name: 'SHRED Challenge Welcome',
-    subject: 'Welcome to the SHRED Challenge!',
-    category: 'marketing',
-    description: 'Welcome email for SHRED challenge participants',
-    htmlFile: '/src/emails/shred-challenge-welcome.html',
-    variables: ['firstName', 'challengeStartDate', 'facebookGroupLink'],
-    tags: ['shred', 'challenge', 'program-welcome']
-  },
-  {
+  
+  // Program Welcome Templates
+  'one-time-macros-welcome': {
     id: 'one-time-macros-welcome',
     name: 'One-Time Macros Welcome',
-    subject: 'Your Custom Macros Are Ready!',
-    category: 'marketing',
-    description: 'Delivery email for one-time macros calculation',
-    htmlFile: '/src/emails/one-time-macros-welcome.html',
-    variables: ['firstName', 'macrosData', 'downloadLink'],
-    tags: ['macros', 'one-time', 'delivery']
+    subject: 'Your Custom Macros Are Ready! - JME FIT',
+    category: 'program',
+    description: 'Welcome email for macro calculation clients',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: oneTimeMacrosWelcomeHtml
+  },
+  
+  'self-led-training-welcome': {
+    id: 'self-led-training-welcome',
+    name: 'Self-Led Training Welcome',
+    subject: 'Welcome to JME FIT - Monthly App Access',
+    category: 'program',
+    description: 'Welcome email for self-led training program',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: selfLedTrainingWelcomeHtml
+  },
+  
+  'shred-challenge-welcome': {
+    id: 'shred-challenge-welcome',
+    name: 'SHRED Challenge Welcome',
+    subject: '🔥 Welcome to the SHRED Challenge! - JME FIT',
+    category: 'program',
+    description: 'Welcome email for SHRED challenge participants',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: shredChallengeWelcomeHtml
+  },
+  
+  'nutrition-programs-welcome': {
+    id: 'nutrition-programs-welcome',
+    name: 'Nutrition Programs Welcome',
+    subject: 'Welcome to JME FIT Nutrition!',
+    category: 'program',
+    description: 'Welcome email for nutrition program clients',
+    variables: ['logoUrl', 'clientName', 'privacyUrl', 'unsubscribeUrl'],
+    html: nutritionProgramsWelcomeHtml
   }
-];
-
-// Helper function to get template by ID
-export const getEmailTemplate = (id: string): EmailTemplateConfig | undefined => {
-  return EMAIL_TEMPLATES.find(template => template.id === id);
 };
 
-// Helper function to get templates by category
-export const getTemplatesByCategory = (category: EmailTemplateConfig['category']): EmailTemplateConfig[] => {
-  return EMAIL_TEMPLATES.filter(template => template.category === category);
-};
+// Helper functions
+export const getEmailTemplatesList = () => Object.values(emailTemplates);
+export const getEmailTemplateById = (id: string) => emailTemplates[id];
+export const getTemplatesByCategory = (category: EmailTemplate['category']) => 
+  Object.values(emailTemplates).filter(t => t.category === category);
 
-// Helper function to get templates by tag
-export const getTemplatesByTag = (tag: string): EmailTemplateConfig[] => {
-  return EMAIL_TEMPLATES.filter(template => template.tags.includes(tag));
-}; 
+// Replace variables in template
+export function replaceTemplateVariables(html: string, variables: Record<string, string>): string {
+  let processedHtml = html;
+  
+  // Set default values
+  const defaults = {
+    logoUrl: 'https://jmefit.com/JME_fit_black_purple.png',
+    privacyUrl: 'https://jmefit.com/privacy',
+    unsubscribeUrl: 'https://jmefit.com/unsubscribe',
+    dashboardUrl: 'https://jmefit.com/dashboard',
+    ...variables
+  };
+  
+  // Replace all variables
+  Object.entries(defaults).forEach(([key, value]) => {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    processedHtml = processedHtml.replace(regex, value || '');
+  });
+  
+  return processedHtml;
+} 

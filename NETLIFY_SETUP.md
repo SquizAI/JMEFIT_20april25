@@ -16,8 +16,8 @@
 ### Environment Variables
 The following environment variables are in netlify 
 ```
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_XXXXXXXXXX
-STRIPE_SECRET_KEY=sk_live_XXXXXXXXXX
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_REDACTED
+STRIPE_SECRET_KEY=sk_live_REDACTED
 VITE_SUPABASE_URL=https://XXXXXXXXXX.supabase.co
 VITE_SUPABASE_ANON_KEY=XXXXXXXXXX
 ```

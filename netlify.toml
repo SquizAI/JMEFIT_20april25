@@ -3,6 +3,11 @@
   publish = "dist"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./public/"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/node_modules/**"]
+
 # Ensure all assets are copied to the dist folder
 [build.processing]
   skip_processing = false
@@ -28,13 +33,26 @@
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept"
-    Content-Security-Policy = "default-src 'self' https: http:; img-src 'self' https: data: http:; style-src 'self' 'unsafe-inline' https: http:; font-src 'self' https: http:; script-src 'self' https: 'unsafe-inline';"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob:;
+      style-src 'self' https: 'unsafe-inline';
+      img-src 'self' data: https: blob:;
+      font-src 'self' data: https:;
+      connect-src 'self' https: wss: ws:;
+      media-src 'self' https:;
+      object-src 'none';
+      frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
+      worker-src 'self' blob:;
+      child-src 'self' blob:;
+      form-action 'self';
+      base-uri 'self';
+      manifest-src 'self';
+    """
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
 
 # Add cache control for images

@@ -107,7 +107,7 @@ function BlogEditor() {
       const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase
         .from('blog_posts')
-        .insert([{ ...post, author_id: user?.id }]);
+        .insert({ ...post, author_id: user?.id });
       
       if (error) throw error;
     },
@@ -559,12 +559,24 @@ function BlogEditor() {
                   setEditorContent(content.content);
                   // Update form fields
                   const titleInput = document.querySelector('input[name="title"]') as HTMLInputElement;
+                  const slugInput = document.querySelector('input[name="slug"]') as HTMLInputElement;
                   const excerptTextarea = document.querySelector('textarea[name="excerpt"]') as HTMLTextAreaElement;
+                  const seoTitleInput = document.querySelector('input[name="seo_title"]') as HTMLInputElement;
                   const seoDescTextarea = document.querySelector('textarea[name="seo_description"]') as HTMLTextAreaElement;
+                  const seoKeywordsInput = document.querySelector('input[name="seo_keywords"]') as HTMLInputElement;
+                  const tagsInput = document.querySelector('input[name="tags"]') as HTMLInputElement;
+                  const categorySelect = document.querySelector('select[name="category"]') as HTMLSelectElement;
+                  const featuredImageInput = document.querySelector('input[name="featured_image"]') as HTMLInputElement;
                   
                   if (titleInput) titleInput.value = content.title;
+                  if (slugInput && content.slug) slugInput.value = content.slug;
                   if (excerptTextarea) excerptTextarea.value = content.excerpt;
+                  if (seoTitleInput) seoTitleInput.value = content.title; // Use title as SEO title
                   if (seoDescTextarea) seoDescTextarea.value = content.metaDescription;
+                  if (seoKeywordsInput && content.seoKeywords) seoKeywordsInput.value = content.seoKeywords.join(', ');
+                  if (tagsInput && content.tags) tagsInput.value = content.tags.join(', ');
+                  if (categorySelect && content.category) categorySelect.value = content.category;
+                  if (featuredImageInput && content.featuredImage) featuredImageInput.value = content.featuredImage;
                 }}
               />
             </div>

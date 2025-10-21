@@ -83,14 +83,14 @@ function CartDropdown({ onClose }: CartDropdownProps) {
               <ShoppingCart className="w-5 h-5 text-gray-600" />
               <h3 className="text-lg font-semibold">Shopping Cart</h3>
             </div>
-            <button 
+            <button
               onClick={() => {
                 onClose();
-              }} 
-              className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-all duration-300 hover:rotate-90"
-              aria-label="Close cart"
+              }}
+              className="text-gray-400 hover:text-gray-600 min-w-11 min-h-11 p-2 rounded-full hover:bg-gray-100 transition-all duration-300 hover:rotate-90 flex items-center justify-center focus:ring-2 focus:ring-purple-600 focus:outline-none"
+              aria-label="Close shopping cart"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
           
@@ -102,7 +102,7 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                   onClose();
                   navigate('/programs'); // Navigate to programs page
                 }}
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-jme-purple bg-purple-50 rounded-lg hover:bg-purple-100"
+                className="inline-flex items-center justify-center px-6 py-3 min-h-11 text-sm font-medium text-jme-purple bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200"
               >
                 Continue Shopping
               </button>
@@ -148,7 +148,7 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                     <button
                       onClick={() => {
                         removeItem(item.id);
-                        
+
                         // Don't close the cart dropdown when removing an item
                         // Only navigate away if the cart becomes empty
                         if (items.length <= 1) {
@@ -156,11 +156,11 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                           // Don't navigate away, just close the cart
                         }
                       }}
-                      className="ml-2 sm:ml-4 p-2.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:rotate-90 touch-manipulation"
-                      aria-label="Remove item"
+                      className="ml-2 sm:ml-4 min-w-11 min-h-11 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 shadow-sm hover:shadow-md hover:rotate-90 touch-manipulation flex items-center justify-center focus:ring-2 focus:ring-red-500 focus:outline-none"
+                      aria-label={`Remove ${item.name} from cart`}
                       title="Remove from cart"
                     >
-                      <X className="w-6 h-6 sm:w-5 sm:h-5" />
+                      <X className="w-6 h-6" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -179,14 +179,14 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                     onClose();
                     navigate('/programs'); // Navigate to programs page
                   }}
-                  className="py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-300 font-medium hover:shadow-md order-2 sm:order-1"
+                  className="py-3 px-6 min-h-11 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-300 font-medium hover:shadow-md order-2 sm:order-1"
                 >
                   Continue Shopping
                 </button>
                 
                 {user ? (
                   <Link
-                    to="/checkout"
+                    to="/checkout/stripe"
                     onClick={onClose}
                     className="flex-1 bg-gradient-to-r from-jme-purple to-purple-700 text-white text-center py-3 px-6 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] duration-300 btn-hover-effect order-1 sm:order-2"
                   >
@@ -194,7 +194,7 @@ function CartDropdown({ onClose }: CartDropdownProps) {
                   </Link>
                 ) : (
                   <Link
-                    to={`/auth?returnUrl=${encodeURIComponent('/checkout')}`}
+                    to={`/auth?returnUrl=${encodeURIComponent('/checkout/stripe')}`}
                     onClick={() => {
                       onClose();
                     }}

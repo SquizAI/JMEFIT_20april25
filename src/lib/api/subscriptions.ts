@@ -10,42 +10,76 @@ export type SubscriptionPrice = Database['public']['Tables']['subscription_price
  */
 export async function getSubscriptionPlans() {
   try {
-    // First get all active subscription plans
-    const { data: plans, error: plansError } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('active', true as any) // Using 'as any' to bypass type error temporarily
-      .order('created_at');
+    // Import error handling utilities
+    const { handleSupabaseError } = await import('../utils/supabase-errors');
+    const { retrySupabaseQuery } = await import('../utils/retry-logic');
 
-    if (plansError) {
-      console.error('Error fetching subscription plans:', plansError);
-      throw plansError;
-    }
-    
+    // Fetch subscription plans with retry logic
+    const plans = await retrySupabaseQuery(
+      () => supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('active', true as any)
+        .order('created_at'),
+      {
+        maxRetries: 3,
+        onRetry: (attempt, error) => {
+          console.warn(`Retrying getSubscriptionPlans (attempt ${attempt}):`, error.message);
+        }
+      }
+    );
+
     // If no plans, return empty array
     if (!plans || plans.length === 0) return [];
-    
+
     // For each plan, get its prices separately
     const plansWithPrices = await Promise.all(
       plans.map(async (plan) => {
-        const { data: prices, error: pricesError } = await supabase
-          .from('subscription_prices')
-          .select('*')
-          .eq('subscription_plan_id', plan.id);
-        
-        if (pricesError) console.error('Error fetching prices for subscription plan', plan.id, pricesError);
-        
-        return {
-          ...plan,
-          subscription_prices: prices || []
-        };
+        try {
+          const prices = await retrySupabaseQuery(
+            () => supabase
+              .from('subscription_prices')
+              .select('*')
+              .eq('subscription_plan_id', plan.id),
+            { maxRetries: 2 } // Fewer retries for sub-queries
+          );
+
+          return {
+            ...plan,
+            subscription_prices: prices || []
+          };
+        } catch (error) {
+          // Log but don't fail - return plan without prices
+          const classified = handleSupabaseError(error, {
+            operation: 'fetch_subscription_prices',
+            table: 'subscription_prices',
+            additionalInfo: { plan_id: plan.id }
+          });
+          console.warn(`Failed to fetch prices for plan ${plan.id}:`, classified.userMessage);
+
+          return {
+            ...plan,
+            subscription_prices: []
+          };
+        }
       })
     );
 
     return plansWithPrices;
   } catch (error) {
-    console.error('Error fetching subscription plans:', error);
-    return [];
+    // Import error handling utilities
+    const { handleSupabaseError } = await import('../utils/supabase-errors');
+
+    const classified = handleSupabaseError(error, {
+      operation: 'fetch_subscription_plans',
+      table: 'subscription_plans'
+    });
+
+    // Log the classified error
+    console.error('Failed to fetch subscription plans:', classified.logMessage);
+
+    // Throw user-friendly error
+    throw new Error(classified.userMessage);
   }
 }
 

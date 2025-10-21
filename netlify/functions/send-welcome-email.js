@@ -2,10 +2,10 @@
 // This endpoint will be available at /.netlify/functions/send-welcome-email
 
 const nodemailer = require('nodemailer');
-const fs = require('fs').promises;
 const path = require('path');
+const fs = require('fs').promises;
 
-// Email template mapping based on package names and Stripe product IDs
+// Email template mapping
 const EMAIL_TEMPLATE_MAP = {
   // Stripe Product IDs to email templates
   'prod_SKFZTSQzWRzlDY': 'nutrition-programs-welcome.html', // Nutrition Only
@@ -59,16 +59,8 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { 
-      customerEmail, 
-      customerName, 
-      packageName, 
-      stripeProductId,
-      isTest = false 
-    } = JSON.parse(event.body);
+    const { customerEmail, customerName, packageName, stripeProductId, isTest } = JSON.parse(event.body);
 
-    console.log(`📧 Welcome email request: ${packageName} for ${customerEmail}`);
-    
     if (!customerEmail || !customerName) {
       return {
         statusCode: 400,
@@ -76,6 +68,11 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: 'Customer email and name are required' }),
       };
     }
+
+    console.log(`📧 Sending welcome email to: ${customerEmail}`);
+    console.log(`📦 Package: ${packageName}`);
+    console.log(`🆔 Product ID: ${stripeProductId}`);
+    console.log(`🧪 Test mode: ${isTest}`);
 
     // Determine which email template to use
     let templateFile = null;
@@ -98,40 +95,55 @@ exports.handler = async (event, context) => {
       console.log(`📧 Using default template: ${templateFile}`);
     }
 
-    // Load email template
-    const templatePath = path.join(process.cwd(), 'src', 'emails', templateFile);
+    // Load email template - try multiple paths
     let emailTemplate;
+    const possiblePaths = [
+      path.join(__dirname, 'emails', templateFile),
+      path.join(process.cwd(), 'src', 'emails', templateFile),
+      path.join(__dirname, '..', '..', 'src', 'emails', templateFile),
+      path.join('/opt/build/repo/src/emails', templateFile),
+      path.join('/var/task/src/emails', templateFile)
+    ];
     
-    try {
-      emailTemplate = await fs.readFile(templatePath, 'utf8');
-    } catch (fileError) {
-      console.error(`❌ Error loading template ${templateFile}:`, fileError);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: `Email template not found: ${templateFile}` }),
-      };
+    console.log(`🔍 Trying to load template: ${templateFile}`);
+    console.log(`📁 Working directory: ${process.cwd()}`);
+    console.log(`📁 Function directory: ${__dirname}`);
+    
+    for (const templatePath of possiblePaths) {
+      try {
+        console.log(`🔍 Trying path: ${templatePath}`);
+        emailTemplate = await fs.readFile(templatePath, 'utf8');
+        console.log(`✅ Template loaded successfully from: ${templatePath}`);
+        break;
+      } catch (pathError) {
+        console.log(`❌ Path failed: ${templatePath} - ${pathError.message}`);
+        continue;
+      }
+    }
+    
+    if (!emailTemplate) {
+      console.error(`❌ Could not find template: ${templateFile}`);
+      // Fallback to a simple HTML template
+      emailTemplate = `
+        <html>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <img src="{{LOGO_URL}}" alt="JME FIT" style="max-width: 200px; height: auto;">
+            </div>
+            <h1 style="color: #8B5CF6; text-align: center;">Welcome to JME FIT!</h1>
+            <p>Hi {{CUSTOMER_NAME}},</p>
+            <p>Welcome to your fitness journey with JME FIT! We're excited to have you on board.</p>
+            <p>Your package: <strong>{{PACKAGE_NAME}}</strong></p>
+            <p>We'll be in touch soon with more details about your program.</p>
+            <p>Best regards,<br>The JME FIT Team</p>
+          </body>
+        </html>
+      `;
+      console.log(`📧 Using fallback template`);
     }
 
-    // Replace template variables
-    const logoUrl = 'https://jmefit.com/JME_fit_black_purple.png';
-    const unsubscribeUrl = `https://jmefit.com/unsubscribe?email=${encodeURIComponent(customerEmail)}`;
-    const privacyUrl = 'https://jmefit.com/privacy';
-    
-    const personalizedEmail = emailTemplate
-      .replace(/\{\{clientName\}\}/g, customerName)
-      .replace(/\{\{customerName\}\}/g, customerName)
-      .replace(/\{\{logoUrl\}\}/g, logoUrl)
-      .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl)
-      .replace(/\{\{privacyUrl\}\}/g, privacyUrl);
-
-    // Get subject line
-    const subject = isTest 
-      ? `[TEST] ${EMAIL_SUBJECTS[templateFile] || 'Welcome to JME FIT!'}`
-      : EMAIL_SUBJECTS[templateFile] || 'Welcome to JME FIT!';
-
     // Create SMTP transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT),
       secure: process.env.SMTP_SECURE === 'true',
@@ -141,19 +153,34 @@ exports.handler = async (event, context) => {
       },
     });
 
+    // Replace template variables
+    const logoUrl = 'https://jmefit.com/JME_fit_black_purple.png';
+    const unsubscribeUrl = `https://jmefit.com/unsubscribe?email=${encodeURIComponent(customerEmail)}`;
+    const privacyUrl = 'https://jmefit.com/privacy';
+    
+    let processedTemplate = emailTemplate
+      .replace(/{{CUSTOMER_NAME}}/g, customerName)
+      .replace(/{{PACKAGE_NAME}}/g, packageName || 'JME FIT Program')
+      .replace(/{{LOGO_URL}}/g, logoUrl)
+      .replace(/{{UNSUBSCRIBE_URL}}/g, unsubscribeUrl)
+      .replace(/{{PRIVACY_URL}}/g, privacyUrl);
+
+    // Get subject line
+    const subject = EMAIL_SUBJECTS[templateFile] || 'Welcome to JME FIT! 🎉';
+
     // Email options
     const mailOptions = {
-      from: process.env.DEFAULT_FROM_EMAIL || 'Jaime from JME FIT <jaime@jmefit.com>',
+      from: process.env.DEFAULT_FROM_EMAIL || 'JME FIT Team <info@jmefit.com>',
       to: customerEmail,
-      subject: subject,
-      html: personalizedEmail,
-      text: `Welcome to JME FIT, ${customerName}! Please enable HTML email to view the full welcome message.`
+      subject: isTest ? `[TEST] ${subject}` : subject,
+      html: processedTemplate,
     };
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
     
-    console.log(`✅ Welcome email sent successfully to ${customerEmail}: ${info.messageId}`);
+    console.log(`✅ Welcome email sent successfully to ${customerEmail}`);
+    console.log(`📧 Message ID: ${info.messageId}`);
 
     return {
       statusCode: 200,
@@ -162,20 +189,18 @@ exports.handler = async (event, context) => {
         success: true,
         message: 'Welcome email sent successfully',
         messageId: info.messageId,
-        template: templateFile,
+        templateUsed: templateFile,
         recipient: customerEmail,
-        timestamp: new Date().toISOString(),
       }),
     };
 
   } catch (error) {
-    console.error('❌ Welcome email error:', error);
+    console.error('❌ Error sending welcome email:', error);
 
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
-        success: false,
         error: error.message,
         timestamp: new Date().toISOString(),
       }),

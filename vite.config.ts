@@ -84,6 +84,11 @@ export default defineConfig(({ mode }) => ({
       brotliSize: true,
     }),
   ],
+  server: {
+    headers: {
+      'Content-Security-Policy': "default-src 'self' https: http: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https: wss: ws: https://*.supabase.co wss://*.supabase.co; img-src 'self' https: http: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data: http: blob:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self' https:; worker-src 'self' blob:;"
+    }
+  },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js']
   },

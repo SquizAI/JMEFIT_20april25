@@ -299,12 +299,14 @@ function Programs() {
   return (
     <div>
       {/* Hero Section */}
-      <div className="relative h-[400px] mb-24">
-        <div 
+      <div className="relative h-[60vh] md:h-[400px] mb-24">
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: 'url("/unsplash-images/fitness-journey.jpg")'
           }}
+          role="img"
+          aria-label="Fitness transformation journey hero image showing dedicated athlete in training"
         />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
@@ -344,11 +346,11 @@ function Programs() {
               <h3 className="text-2xl font-bold mb-2 relative z-10">Nutrition Only</h3>
               <p className="text-lg opacity-90 mb-4 relative z-10">Custom nutrition plan, guidance & anytime support</p>
               <div className="text-sm text-teal-200 mb-4 relative z-10">3-month minimum commitment</div>
-              <button 
+              <button
                 onClick={() => setShowNutritionDetails(true)}
-                className="bg-white/20 text-white text-sm py-1.5 px-5 rounded-full flex items-center gap-1.5 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
+                className="bg-white/20 text-white text-sm min-h-11 py-3 px-6 rounded-full flex items-center gap-2 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
               >
-                <Info className="w-4 h-4" /> 
+                <Info className="w-4 h-4" />
                 <span className="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white after:transition-all hover:after:w-full">More Info</span>
               </button>
               <PricingToggle
@@ -406,11 +408,11 @@ function Programs() {
               <h3 className="text-2xl font-bold mb-2 relative z-10">Nutrition & Training</h3>
               <p className="text-lg opacity-90 mb-4 relative z-10">Complete transformation package with nutrition and custom workouts</p>
               <div className="text-sm text-purple-300 mb-4 relative z-10">3-month minimum commitment</div>
-              <button 
+              <button
                 onClick={() => setShowNutritionTrainingDetails(true)}
-                className="bg-white/20 text-white text-sm py-1.5 px-5 rounded-full flex items-center gap-1.5 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
+                className="bg-white/20 text-white text-sm min-h-11 py-3 px-6 rounded-full flex items-center gap-2 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
               >
-                <Info className="w-4 h-4" /> 
+                <Info className="w-4 h-4" />
                 <span className="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white after:transition-all hover:after:w-full">More Info</span>
               </button>
               <PricingToggle
@@ -476,11 +478,12 @@ function Programs() {
           >
             <button
               onClick={() => setShowNutritionDetails(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+              className="absolute top-4 right-4 min-w-11 min-h-11 p-2 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
+              aria-label="Close modal"
             >
               <X className="w-6 h-6" />
             </button>
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-jme-cyan to-cyan-700 rounded-xl">
                   <Apple className="w-6 h-6 text-white" />
@@ -602,11 +605,12 @@ function Programs() {
           >
             <button
               onClick={() => setShowNutritionTrainingDetails(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+              className="absolute top-4 right-4 min-w-11 min-h-11 p-2 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
+              aria-label="Close modal"
             >
               <X className="w-6 h-6" />
             </button>
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-jme-purple to-purple-900 rounded-xl">
                   <Scale className="w-6 h-6 text-white" />
@@ -740,11 +744,12 @@ function Programs() {
           >
             <button
               onClick={() => setShowTrainerFeedbackDetails(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+              className="absolute top-4 right-4 min-w-11 min-h-11 p-2 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
+              aria-label="Close modal"
             >
               <X className="w-6 h-6" />
             </button>
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-jme-purple to-purple-900 rounded-xl">
                   <MessageSquare className="w-6 h-6 text-white" />
@@ -837,11 +842,12 @@ function Programs() {
           >
             <button
               onClick={() => setShowSelfLedDetails(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+              className="absolute top-4 right-4 min-w-11 min-h-11 p-2 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
+              aria-label="Close modal"
             >
               <X className="w-6 h-6" />
             </button>
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-jme-cyan to-cyan-700 rounded-xl">
                   <Dumbbell className="w-6 h-6 text-white" />
@@ -952,11 +958,11 @@ function Programs() {
               </div>
               <h3 className="text-2xl font-bold mb-2 relative z-10">Self-Led Training</h3>
               <p className="text-lg opacity-90 mb-4 relative z-10">Complete app access with monthly workout plans</p>
-              <button 
+              <button
                 onClick={() => setShowSelfLedDetails(true)}
-                className="bg-white/20 text-white text-sm py-1.5 px-5 rounded-full flex items-center gap-1.5 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
+                className="bg-white/20 text-white text-sm min-h-11 py-3 px-6 rounded-full flex items-center gap-2 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
               >
-                <Info className="w-4 h-4" /> 
+                <Info className="w-4 h-4" />
                 <span className="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white after:transition-all hover:after:w-full">More Info</span>
               </button>
               <PricingToggle
@@ -1021,11 +1027,11 @@ function Programs() {
               </div>
               <h3 className="text-2xl font-bold mb-2 relative z-10">Trainer Feedback</h3>
               <p className="text-lg opacity-90 mb-4 relative z-10">Personal guidance & form checks</p>
-              <button 
+              <button
                 onClick={() => setShowTrainerFeedbackDetails(true)}
-                className="bg-white/20 text-white text-sm py-1.5 px-5 rounded-full flex items-center gap-1.5 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
+                className="bg-white/20 text-white text-sm min-h-11 py-3 px-6 rounded-full flex items-center gap-2 mx-auto mb-3 hover:bg-white/30 hover:scale-105 transition-all duration-300 relative z-20 shadow-sm hover:shadow-md"
               >
-                <Info className="w-4 h-4" /> 
+                <Info className="w-4 h-4" />
                 <span className="relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-white after:transition-all hover:after:w-full">More Info</span>
               </button>
               <PricingToggle
@@ -1091,8 +1097,8 @@ function Programs() {
           <h2 className="text-5xl font-extrabold inline-block mb-6 bg-gradient-to-r from-jme-cyan via-purple-600 to-jme-purple bg-clip-text text-transparent drop-shadow-lg" style={{textShadow: 'rgba(100, 100, 255, 0.3) 0px 0px 5px'}}>One-Time Offerings</h2>
           <p className="text-gray-400">Get started with a single purchase option</p>
         </div>
-        <div 
-          className="bg-gradient-to-br from-jme-cyan to-cyan-700 rounded-2xl p-8 text-white shadow-xl transform hover:scale-[1.01] transition-transform duration-300 relative overflow-hidden"
+        <div
+          className="bg-gradient-to-br from-jme-cyan to-cyan-700 rounded-2xl p-4 sm:p-6 md:p-8 text-white shadow-xl transform hover:scale-[1.01] transition-transform duration-300 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-300/20 rounded-full -ml-24 -mb-24 blur-2xl"></div>
@@ -1136,7 +1142,7 @@ function Programs() {
           <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-jme-cyan via-purple-600 to-jme-purple bg-clip-text text-transparent drop-shadow-lg" style={{textShadow: '0 0 5px rgba(100, 100, 255, 0.3)'}}>Special Challenge Program</h2>
           <p className="text-lg text-gray-400">Transform your body with our intensive 6-week program</p>
         </div>
-        <div id="shred-challenge" className="bg-gradient-to-r from-jme-cyan via-jme-purple to-jme-cyan bg-[length:200%_100%] hover:bg-[100%] transition-all duration-500 rounded-2xl text-white p-8 shadow-[0_0_30px_rgba(139,92,246,0.3)] border-4 border-white/30 relative overflow-hidden">
+        <div id="shred-challenge" className="bg-gradient-to-r from-jme-cyan via-jme-purple to-jme-cyan bg-[length:200%_100%] hover:bg-[100%] transition-all duration-500 rounded-2xl text-white p-4 sm:p-6 md:p-8 shadow-[0_0_30px_rgba(139,92,246,0.3)] border-4 border-white/30 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-jme-cyan/20 via-jme-purple/20 to-jme-cyan/20 rounded-2xl animate-pulse"></div>
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-300/20 rounded-full -ml-24 -mb-24 blur-2xl"></div>

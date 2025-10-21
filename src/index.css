@@ -22,7 +22,13 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 2px solid rgba(229, 231, 235, 0.5);
-    min-height: 650px;
+    min-height: 400px;
+  }
+
+  @media (min-width: 768px) {
+    .program-card {
+      min-height: 650px;
+    }
   }
   
   .program-card:hover {
@@ -270,7 +276,8 @@
     background-position: 75% center;
     background-attachment: scroll;
     background-size: cover;
-    height: 100vh !important; /* Ensure full height on mobile */
+    min-height: 100vh; /* Ensure full height on mobile */
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
   }
   
   /* Improve mobile text visibility */

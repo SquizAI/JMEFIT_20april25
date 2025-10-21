@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../../lib/supabase';
-import EmailBuilder from './Builder';
+import EmailTemplateLoader from './EmailTemplateLoader';
 import HtmlTemplateViewer from './HtmlTemplateViewer';
+import AIEmailBuilder from './AIEmailBuilder';
 
 interface EmailCampaign {
   id: string;
@@ -31,7 +32,7 @@ interface RecipientSegment {
 
 function EmailCampaigns() {
   const queryClient = useQueryClient();
-  const [activeView, setActiveView] = useState<'campaigns' | 'builder' | 'analytics' | 'templates'>('campaigns');
+  const [activeView, setActiveView] = useState<'campaigns' | 'builder' | 'analytics' | 'templates' | 'ai-builder'>('campaigns');
   const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(null);
   const [showNewCampaignForm, setShowNewCampaignForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -187,7 +188,7 @@ function EmailCampaigns() {
             ← Back to Campaigns
           </button>
         </div>
-        <EmailBuilder />
+        <EmailTemplateLoader />
       </div>
     );
   }
@@ -208,12 +209,37 @@ function EmailCampaigns() {
     );
   }
 
+  if (activeView === 'ai-builder') {
+    return (
+      <div>
+        <div className="mb-4">
+          <button
+            onClick={() => setActiveView('campaigns')}
+            className="px-4 py-2 text-jme-purple hover:text-jme-purple-dark"
+          >
+            ← Back to Campaigns
+          </button>
+        </div>
+        <AIEmailBuilder />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Email Campaigns</h2>
         <div className="flex gap-2">
+          <button
+            onClick={() => setActiveView('ai-builder')}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            AI Email Builder
+          </button>
           <button
             onClick={() => setActiveView('templates')}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"

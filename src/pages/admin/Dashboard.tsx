@@ -40,7 +40,9 @@ import {
   BarChart,
   LogOut,
   ChevronLeft,
-  Menu
+  Menu,
+  CreditCard,
+  RefreshCw
 } from 'lucide-react';
 import { FinancialReports } from '../../components/admin/Analytics/FinancialReports';
 import { ContentManagement } from '../../components/admin/Content/ContentManagement';
@@ -50,9 +52,10 @@ import { AdvancedScheduling } from '../../components/admin/Scheduling/AdvancedSc
 import ShredManager from '../../components/admin/ShredManager';
 import BlogEditor from '../../components/admin/Blog/BlogEditor';
 import RevenueDashboard from '../../components/admin/Revenue/RevenueDashboard';
+import EmailTester from '../../components/admin/EmailTester';
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'shred' | 'blog' | 'revenue' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'settings' | 'financial' | 'content' | 'workflows' | 'support' | 'scheduling'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard' | 'users' | 'pricing' | 'dates' | 'shred' | 'blog' | 'revenue' | 'invoices' | 'merchandise' | 'waitlist' | 'analytics' | 'communications' | 'notifications' | 'integrations' | 'orders' | 'subscriptions' | 'settings' | 'financial' | 'content' | 'workflows' | 'support' | 'scheduling' | 'email-test'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const [exportLoading, setExportLoading] = useState(false);
@@ -64,13 +67,7 @@ function AdminDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items(
-            *,
-            products(*)
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -84,6 +81,25 @@ function AdminDashboard() {
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Query subscriptions
+  const { data: subscriptions } = useQuery({
+    queryKey: ['subscriptions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          *,
+          profiles!inner(email, full_name),
+          products(name),
+          prices(unit_amount, currency, interval)
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -133,6 +149,9 @@ function AdminDashboard() {
 
   // Set up real-time subscriptions
   useEffect(() => {
+    // Commenting out realtime subscriptions due to CSP issues
+    // TODO: Re-enable when CSP is properly configured for WebSockets
+    /*
     const ordersSubscription = supabase
       .channel('orders_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
@@ -151,6 +170,7 @@ function AdminDashboard() {
       ordersSubscription.unsubscribe();
       productsSubscription.unsubscribe();
     };
+    */
   }, [refetchOrders, refetchProducts]);
 
   // Calculate filtered orders based on date range
@@ -183,10 +203,10 @@ function AdminDashboard() {
     const filteredOrders = getFilteredOrders();
     return {
       totalOrders: filteredOrders.length,
-      totalRevenue: filteredOrders.reduce((sum, order) => sum + order.total, 0),
+      totalRevenue: filteredOrders.reduce((sum, order) => sum + order.total_amount, 0),
       activeProducts: products?.filter(p => p.active).length || 0,
       averageOrderValue: filteredOrders.length > 0 
-        ? (filteredOrders.reduce((sum, order) => sum + order.total, 0) / filteredOrders.length).toFixed(2)
+        ? (filteredOrders.reduce((sum, order) => sum + order.total_amount, 0) / filteredOrders.length).toFixed(2)
         : '0'
     };
   }, [orders, products, dateRange]);
@@ -199,7 +219,7 @@ function AdminDashboard() {
         id: order.id,
         date: format(new Date(order.created_at), 'yyyy-MM-dd'),
         customer: order.profiles?.email,
-        total: order.total,
+        total: order.total_amount,
         status: order.status
       }));
 
@@ -236,7 +256,10 @@ function AdminDashboard() {
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={20} /> },
     { id: 'communications', label: 'Communications', icon: <Mail size={20} /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell size={20} /> },
-    { id: 'integrations', label: 'Integrations', icon: <Link2 size={20} /> }
+          { id: 'integrations', label: 'Integrations', icon: <Link2 size={20} /> },
+      { id: 'subscriptions', label: 'Subscriptions', icon: <CreditCard size={20} /> },
+      { id: 'email-test', label: 'Email Test', icon: <Mail size={20} /> },
+      { id: 'refresh', label: 'Refresh Data', icon: <RefreshCw size={20} /> }
   ];
 
   const tabOptions = [
@@ -253,6 +276,8 @@ function AdminDashboard() {
     { id: 'support', label: 'Support', icon: HelpCircle },
     { id: 'scheduling', label: 'Scheduling', icon: Clock },
     { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard },
+    { id: 'refresh', label: 'Refresh Data', icon: RefreshCw }
   ];
 
   return (
@@ -262,7 +287,10 @@ function AdminDashboard() {
         noindex={true}
       />
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <AdminSidebar 
+          activeTab={activeTab} 
+          onTabChange={(tab) => setActiveTab(tab as any)} 
+        />
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between mb-8">
@@ -314,13 +342,7 @@ function AdminDashboard() {
         
         {activeTab === 'communications' && <EmailCampaigns />}
 
-        {activeTab === 'analytics' && (
-          <Analytics 
-            orders={getFilteredOrders()} 
-            products={products || []} 
-            dateRange={dateRange}
-          />
-        )}
+        {activeTab === 'analytics' && <Analytics />}
 
         {activeTab === 'dashboard' && <CustomizableDashboard />}
 
@@ -331,6 +353,78 @@ function AdminDashboard() {
         {activeTab === 'notifications' && <NotificationCenter />}
 
         {activeTab === 'integrations' && <IntegrationHub />}
+
+        {activeTab === 'subscriptions' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div className="p-6 border-b dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Subscriptions</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-700">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Product
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Price
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Created At
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {subscriptions?.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                        No subscriptions found
+                      </td>
+                    </tr>
+                  ) : (
+                    subscriptions?.map((sub) => (
+                      <tr key={sub.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {sub.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {sub.profiles?.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {sub.products?.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {sub.prices?.unit_amount} {sub.prices?.currency}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            sub.status === 'active' ? 'bg-green-100 text-green-800' :
+                            sub.status === 'canceled' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {sub.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {format(parseISO(sub.created_at), 'MMM d, yyyy')}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {activeTab === 'waitlist' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
@@ -467,6 +561,7 @@ function AdminDashboard() {
         {activeTab === 'workflows' && <AutomatedWorkflows />}
         {activeTab === 'support' && <CustomerSupport />}
         {activeTab === 'scheduling' && <AdvancedScheduling />}
+        {activeTab === 'email-test' && <EmailTester />}
 
             {/* Other tabs remain unchanged */}
           </div>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Confirmation - JMEFit</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+    }
+    .content {
+      padding: 20px 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(to right, #8b5cf6, #7c3aed);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .subscription-details {
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #888;
+      font-size: 12px;
+    }
+    .social-links {
+      margin: 15px 0;
+    }
+    .social-links a {
+      display: inline-block;
+      margin: 0 10px;
+      color: #8b5cf6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="JMEFit Logo" class="logo">
+      <h1>Your Subscription is Active!</h1>
+    </div>
+    
+    <div class="content">
+      <p>Hello {{fullName}},</p>
+      
+      <p>Thank you for subscribing to JMEFit! Your subscription is now active, and you have full access to all our premium features.</p>
+      
+      <div class="subscription-details">
+        <h3>Subscription Details</h3>
+        <div class="detail-row">
+          <div>Plan:</div>
+          <div>{{planName}}</div>
+        </div>
+        <div class="detail-row">
+          <div>Billing Cycle:</div>
+          <div>{{billingCycle}}</div>
+        </div>
+        <div class="detail-row">
+          <div>Amount:</div>
+          <div>${{amount}} / {{billingCycle}}</div>
+        </div>
+        <div class="detail-row">
+          <div>Next Billing Date:</div>
+          <div>{{nextBillingDate}}</div>
+        </div>
+      </div>
+      
+      <p>With your {{planName}} subscription, you now have access to:</p>
+      <ul>
+        <li>Personalized workout plans tailored to your fitness goals</li>
+        <li>Nutrition guidance and meal planning tools</li>
+        <li>Progress tracking and analytics</li>
+        <li>Premium video content and tutorials</li>
+        <li>Priority customer support</li>
+      </ul>
+      
+      <p>Start exploring all the features of your subscription by visiting your dashboard:</p>
+      
+      <div style="text-align: center;">
+        <a href="{{dashboardUrl}}" class="button">Go to My Dashboard</a>
+      </div>
+      
+      <p>You can manage your subscription, update payment methods, or change your plan at any time through your account settings.</p>
+      
+      <p>If you have any questions or need assistance, our support team is here to help at <a href="mailto:support@jmefit.com">support@jmefit.com</a>.</p>
+      
+      <p>Here's to your fitness journey!</p>
+      
+      <p>The JMEFit Team</p>
+    </div>
+    
+    <div class="footer">
+      <div class="social-links">
+        <a href="https://instagram.com/jmefit">Instagram</a>
+        <a href="https://twitter.com/jmefit">Twitter</a>
+        <a href="https://facebook.com/jmefit">Facebook</a>
+      </div>
+      <p>&copy; 2023 JMEFit. All rights reserved.</p>
+      <p>123 Fitness Street, Workout City, WO 12345</p>
+      <p>
+        <a href="{{unsubscribeUrl}}">Unsubscribe</a> |
+        <a href="{{privacyUrl}}">Privacy Policy</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

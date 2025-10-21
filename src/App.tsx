@@ -21,6 +21,7 @@ import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminLogin from './pages/admin/Login';
 import Checkout from './pages/Checkout';
+import StripeCheckout from './modules/checkout/components/StripeCheckout';
 import RedeemGift from './pages/RedeemGift';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import NotFound from './pages/NotFound';
@@ -86,6 +87,7 @@ function App() {
               } />
               <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
               <Route path="/checkout" element={<PageTransition><Checkout /></PageTransition>} />
+              <Route path="/checkout/stripe" element={<PageTransition><StripeCheckout /></PageTransition>} />
               <Route path="/checkout/success" element={<PageTransition><CheckoutSuccess /></PageTransition>} />
               <Route path="/redeem" element={<PageTransition><RedeemGift /></PageTransition>} />
               <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />

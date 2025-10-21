@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2, Copy, Check } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface AIBlogWriterProps {
-  onGenerate: (content: { title: string; content: string; excerpt: string; metaDescription: string }) => void;
+  onGenerate: (content: { 
+    title: string; 
+    content: string; 
+    excerpt: string; 
+    metaDescription: string;
+    slug?: string;
+    category?: string;
+    tags?: string[];
+    seoKeywords?: string[];
+    featuredImage?: string;
+  }) => void;
 }
 
 const AIBlogWriter: React.FC<AIBlogWriterProps> = ({ onGenerate }) => {
@@ -31,7 +41,8 @@ const AIBlogWriter: React.FC<AIBlogWriterProps> = ({ onGenerate }) => {
           tone,
           length,
           keywords: keywords.split(',').map(k => k.trim()).filter(Boolean),
-          brand: 'JMEFIT'
+          brand: 'JMEFIT',
+          generateImage: true // Always generate image
         })
       });
 
@@ -52,7 +63,17 @@ const AIBlogWriter: React.FC<AIBlogWriterProps> = ({ onGenerate }) => {
 
   const applyContent = () => {
     if (preview) {
-      onGenerate(preview);
+      onGenerate({
+        title: preview.title,
+        content: preview.content,
+        excerpt: preview.excerpt,
+        metaDescription: preview.metaDescription,
+        slug: preview.slug,
+        category: preview.category,
+        tags: preview.tags,
+        seoKeywords: preview.seoKeywords,
+        featuredImage: preview.generatedImage?.url
+      });
       setPreview(null);
       setTopic('');
       setKeywords('');
@@ -172,12 +193,45 @@ const AIBlogWriter: React.FC<AIBlogWriterProps> = ({ onGenerate }) => {
             </div>
             
             <div className="text-sm text-gray-600 dark:text-gray-400">
+              <strong>Slug:</strong> {preview.slug}
+            </div>
+            
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <strong>Category:</strong> {preview.category}
+            </div>
+            
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <strong>Tags:</strong> {preview.tags?.join(', ')}
+            </div>
+            
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <strong>SEO Keywords:</strong> {preview.seoKeywords?.join(', ')}
+            </div>
+            
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               <strong>Excerpt:</strong> {preview.excerpt}
             </div>
             
             <div className="text-sm text-gray-600 dark:text-gray-400">
               <strong>Meta Description:</strong> {preview.metaDescription}
             </div>
+            
+            {preview.generatedImage && (
+              <div className="mt-4">
+                <strong className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Featured Image:</strong>
+                <div className="relative rounded-lg overflow-hidden">
+                  <img 
+                    src={preview.generatedImage.url} 
+                    alt="Generated blog header" 
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                    <ImageIcon className="w-3 h-3" />
+                    {preview.generatedImage.model}
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="prose prose-sm dark:prose-invert max-h-64 overflow-y-auto">
               <div dangerouslySetInnerHTML={{ __html: preview.content }} />

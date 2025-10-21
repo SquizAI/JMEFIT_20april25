@@ -7,10 +7,11 @@ import { format } from 'date-fns';
 import { Activity, Calendar, CreditCard, Dumbbell, Settings, ShoppingBag, TrendingUp, ToggleLeft as Google } from 'lucide-react';
 import SEO from '../components/SEO';
 import toast from 'react-hot-toast';
+import SubscriptionManager from '../components/SubscriptionManager';
 
 function Dashboard() {
   const { user, updateProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'workouts' | 'orders' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'workouts' | 'orders' | 'subscriptions' | 'settings'>('overview');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,10 +60,7 @@ function Dashboard() {
         .from('orders')
         .select(`
           *,
-          order_items (
-            *,
-            products (*)
-          )
+          order_items (*)
         `)
         .eq('user_id', user.id as any)
         .order('created_at', { ascending: false });
@@ -100,9 +98,10 @@ function Dashboard() {
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id as any)
-        .eq('status', 'active' as any);
+        .eq('status', 'active' as any)
+        .single();
 
-      return data?.[0] || null;
+      return data || null;
     }
   });
 
@@ -174,6 +173,17 @@ function Dashboard() {
               Orders
             </button>
             <button
+              onClick={() => setActiveTab('subscriptions')}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'subscriptions'
+                  ? 'bg-jme-purple text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <CreditCard className="w-5 h-5 inline-block mr-2" />
+              Subscriptions
+            </button>
+            <button
               onClick={() => setActiveTab('settings')}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === 'settings'
@@ -216,50 +226,48 @@ function Dashboard() {
 
                   <div className="bg-white p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Recent Workouts</h3>
-                      <Calendar className="w-6 h-6 text-green-500" />
+                      <h3 className="text-lg font-semibold">Total Orders</h3>
+                      <ShoppingBag className="w-6 h-6 text-jme-purple" />
                     </div>
                     <p className="text-2xl font-bold text-gray-900 mb-2">
-                      {workoutLogs?.length || 0}
+                      {orders?.length || 0}
                     </p>
-                    <p className="text-sm text-gray-500">Workouts this month</p>
+                    <p className="text-sm text-gray-500">Lifetime purchases</p>
                   </div>
 
                   <div className="bg-white p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Progress</h3>
-                      <TrendingUp className="w-6 h-6 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Workouts Logged</h3>
+                      <Dumbbell className="w-6 h-6 text-jme-purple" />
                     </div>
                     <p className="text-2xl font-bold text-gray-900 mb-2">
-                      Coming Soon
+                      {workoutLogs?.length || 0}
                     </p>
-                    <p className="text-sm text-gray-500">Track your fitness journey</p>
+                    <p className="text-sm text-gray-500">This month</p>
                   </div>
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="bg-white rounded-lg shadow">
                   <div className="p-6 border-b">
                     <h3 className="text-lg font-semibold">Recent Activity</h3>
                   </div>
                   <div className="p-6">
-                    <div className="space-y-6">
-                      {workoutLogs && Array.isArray(workoutLogs) && workoutLogs.map(log => (
-                        <div key={(log as any).id} className="flex items-start">
-                          <div className="flex-shrink-0">
-                            <Dumbbell className="w-5 h-5 text-gray-400" />
+                    <div className="space-y-4">
+                      {orders && orders.slice(0, 3).map((order: any) => (
+                        <div key={order.id} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                            <div>
+                              <p className="font-medium">Order #{order.id.slice(0, 8)}</p>
+                              <p className="text-sm text-gray-500">
+                                {format(new Date(order.created_at), 'MMM d, yyyy')}
+                              </p>
+                            </div>
                           </div>
-                          <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-900">
-                              Completed workout: {(log as any).program_id}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {format(new Date((log as any).workout_date), 'MMM d, yyyy')}
-                            </p>
-                            {(log as any).notes && (
-                              <p className="mt-2 text-sm text-gray-600">{(log as any).notes}</p>
-                            )}
-                          </div>
+                          <span className="text-sm font-medium text-green-600">
+                            ${order.total_amount}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -361,32 +369,29 @@ function Dashboard() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${(order as any).total}
+                            ${(order as any).total_amount}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button 
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
                               onClick={() => {
                                 setSelectedOrder(order);
                                 setOrderDetailsOpen(true);
                               }}
-                              className="text-jme-purple hover:text-purple-700 font-medium"
+                              className="text-jme-purple hover:text-purple-700"
                             >
                               View Details
                             </button>
                           </td>
                         </tr>
                       ))}
-                      {!orders?.length && (
-                        <tr>
-                          <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                            No orders found
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'subscriptions' && (
+              <SubscriptionManager />
             )}
 
             {activeTab === 'settings' && (
@@ -395,208 +400,156 @@ function Dashboard() {
                   <h3 className="text-lg font-semibold">Account Settings</h3>
                 </div>
                 <div className="p-6">
-                  <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <form onSubmit={handleProfileUpdate} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
                         Full Name
                       </label>
                       <input
                         type="text"
+                        id="fullName"
                         name="fullName"
                         defaultValue={user?.user_metadata?.full_name || ''}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-jme-purple focus:border-jme-purple"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-jme-purple focus:ring-jme-purple"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                         Email
                       </label>
                       <input
                         type="email"
-                        value={user?.email}
+                        id="email"
+                        value={user?.email || ''}
                         disabled
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-500"
                       />
                     </div>
-                    <div>
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-jme-purple hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-jme-purple ${
-                          loading ? 'opacity-75 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        {loading ? 'Saving...' : 'Save Changes'}
-                      </button>
-                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-jme-purple text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {loading ? 'Updating...' : 'Update Profile'}
+                    </button>
                   </form>
+
+                  <div className="mt-8 pt-6 border-t">
+                    <h4 className="text-base font-medium text-gray-900 mb-4">Connected Accounts</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Google className="w-5 h-5 text-gray-400 mr-3" />
+                          <span className="text-sm text-gray-700">Google</span>
+                        </div>
+                        {identities.some(id => id.provider === 'google') ? (
+                          <button
+                            onClick={() => handleUnlinkIdentity(identities.find(id => id.provider === 'google'))}
+                            className="text-sm text-red-600 hover:text-red-700"
+                          >
+                            Disconnect
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleLinkGoogle}
+                            disabled={linkingLoading}
+                            className="text-sm text-jme-purple hover:text-purple-700"
+                          >
+                            {linkingLoading ? 'Connecting...' : 'Connect'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-          
-          {/* Linked Accounts Section */}
-          <div className="mt-8 pt-8 border-t">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Linked Accounts</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Google className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-gray-700">Google</span>
-                </div>
-                {identities?.find(i => i.provider === 'google') ? (
-                  <button
-                    onClick={() => handleUnlinkIdentity(identities.find(i => i.provider === 'google'))}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    Unlink
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleLinkGoogle}
-                    disabled={linkingLoading}
-                    className="text-sm text-jme-purple hover:text-purple-700"
-                  >
-                    {linkingLoading ? 'Linking...' : 'Link Account'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
+      </div>
 
-        {/* Order Details Modal */}
-        {orderDetailsOpen && selectedOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b flex justify-between items-center">
+      {/* Order Details Modal */}
+      {orderDetailsOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Order Details</h3>
-                <button 
+                <button
                   onClick={() => setOrderDetailsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-1">Order ID</h4>
-                    <p className="text-gray-900">{selectedOrder.id}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-1">Date</h4>
-                    <p className="text-gray-900">{format(new Date(selectedOrder.created_at), 'MMMM d, yyyy h:mm a')}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      selectedOrder.status === 'paid'
-                        ? 'bg-green-100 text-green-800'
-                        : selectedOrder.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedOrder.status}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-1">Total</h4>
-                    <p className="text-gray-900 font-medium">${selectedOrder.total}</p>
-                  </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Order ID</h4>
+                  <p className="text-gray-900">{selectedOrder.id}</p>
                 </div>
-
-                <div className="border-t pt-6">
-                  <h4 className="text-base font-medium text-gray-900 mb-4">Order Items</h4>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {selectedOrder.order_items?.map((item: any) => (
-                          <tr key={item.id}>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center">
-                                {item.products?.image && (
-                                  <img 
-                                    src={item.products.image} 
-                                    alt={item.products?.name} 
-                                    className="h-10 w-10 rounded-md object-cover mr-3"
-                                  />
-                                )}
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900">{item.products?.name || 'Product'}</p>
-                                  {item.products?.description && (
-                                    <p className="text-xs text-gray-500 truncate max-w-xs">{item.products.description}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">{item.quantity}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">${item.price}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">${(item.price * item.quantity).toFixed(2)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Date</h4>
+                  <p className="text-gray-900">{format(new Date(selectedOrder.created_at), 'MMMM d, yyyy h:mm a')}</p>
                 </div>
-
-                {selectedOrder.shipping_address && (
-                  <div className="border-t pt-6 mt-6">
-                    <h4 className="text-base font-medium text-gray-900 mb-4">Shipping Information</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h5 className="text-sm font-medium text-gray-500 mb-1">Shipping Address</h5>
-                        <p className="text-sm text-gray-900">{selectedOrder.shipping_address.line1}</p>
-                        {selectedOrder.shipping_address.line2 && (
-                          <p className="text-sm text-gray-900">{selectedOrder.shipping_address.line2}</p>
-                        )}
-                        <p className="text-sm text-gray-900">
-                          {selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state} {selectedOrder.shipping_address.postal_code}
-                        </p>
-                        <p className="text-sm text-gray-900">{selectedOrder.shipping_address.country}</p>
-                      </div>
-                      {selectedOrder.shipping_method && (
-                        <div>
-                          <h5 className="text-sm font-medium text-gray-500 mb-1">Shipping Method</h5>
-                          <p className="text-sm text-gray-900">{selectedOrder.shipping_method}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {selectedOrder.payment_method && (
-                  <div className="border-t pt-6 mt-6">
-                    <h4 className="text-base font-medium text-gray-900 mb-4">Payment Information</h4>
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-1">Payment Method</h5>
-                      <p className="text-sm text-gray-900">{selectedOrder.payment_method}</p>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    selectedOrder.status === 'paid'
+                      ? 'bg-green-100 text-green-800'
+                      : selectedOrder.status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {selectedOrder.status}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Total</h4>
+                  <p className="text-gray-900 font-medium">${selectedOrder.total_amount}</p>
+                </div>
               </div>
-              <div className="p-6 border-t bg-gray-50 flex justify-end">
-                <button
-                  onClick={() => setOrderDetailsOpen(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-                >
-                  Close
-                </button>
+
+              <div className="border-t pt-6">
+                <h4 className="text-base font-medium text-gray-900 mb-4">Order Items</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {selectedOrder.order_items?.map((item: any) => (
+                        <tr key={item.id}>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{item.product_name || 'Product'}</p>
+                                <p className="text-xs text-gray-500">{item.stripe_product_id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{item.quantity}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">${item.price}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">${(item.price * item.quantity).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

@@ -33,15 +33,33 @@ function Blog() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select(`
-          *,
-          author:profiles!author_id(full_name, email)
-        `)
+        .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false });
       
-      if (error) throw error;
-      return data as DatabaseBlogPost[];
+      if (error) {
+        console.error('Error fetching blog posts:', error);
+        return [];
+      }
+      
+      // Fetch author data separately for each post
+      const postsWithAuthors = await Promise.all((data || []).map(async (post) => {
+        if (post.author_id) {
+          const { data: author } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', post.author_id)
+            .single();
+          
+          return {
+            ...post,
+            author: author || null
+          };
+        }
+        return post;
+      }));
+      
+      return postsWithAuthors as DatabaseBlogPost[];
     }
   });
 

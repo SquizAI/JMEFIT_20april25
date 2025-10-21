@@ -50,11 +50,7 @@ export function UserManagement() {
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          orders(total, created_at),
-          subscriptions(status, price_id, current_period_end)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -90,16 +86,34 @@ export function UserManagement() {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Process user data
-      return data?.map(user => ({
-        ...user,
-        total_spent: user.orders?.reduce((sum: number, order: any) => sum + order.total, 0) || 0,
-        subscription_status: user.subscriptions?.[0]?.status || 'none',
-        subscription_plan: user.subscriptions?.[0]?.price_id || null,
-        is_active: user.last_sign_in_at ? 
-          new Date(user.last_sign_in_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) : 
-          false
+      // Fetch related data separately for each user
+      const usersWithData = await Promise.all((data || []).map(async (user) => {
+        // Fetch orders for this user
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('total_amount, created_at')
+          .eq('user_id', user.id);
+
+        // Fetch subscriptions for this user
+        const { data: subscriptions } = await supabase
+          .from('subscriptions')
+          .select('status, price_id, current_period_end')
+          .eq('user_id', user.id);
+
+        return {
+          ...user,
+          orders: orders || [],
+          subscriptions: subscriptions || [],
+          total_spent: orders?.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0) || 0,
+          subscription_status: subscriptions?.[0]?.status || 'none',
+          subscription_plan: subscriptions?.[0]?.price_id || null,
+          is_active: user.last_sign_in_at ? 
+            new Date(user.last_sign_in_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) : 
+            false
+        };
       }));
+
+      return usersWithData;
     }
   });
 

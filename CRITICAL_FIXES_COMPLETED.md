@@ -211,7 +211,7 @@ The `VITE_STRIPE_SECRET_KEY` environment variable is currently set in Netlify pr
 
 ### Current State (DANGEROUS)
 ```
-VITE_STRIPE_SECRET_KEY=sk_live_REDACTED
+VITE_STRIPE_SECRET_KEY=sk_live_REDACTED_KEY_ROTATED
 ```
 
 The `VITE_` prefix means Vite will bundle this into the client-side JavaScript, making it publicly visible.
@@ -227,12 +227,12 @@ The `VITE_` prefix means Vite will bundle this into the client-side JavaScript, 
 
 **Client-side (PUBLIC - OK to expose):**
 ```
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_REDACTED
 ```
 
 **Server-side (SECRET - Never expose):**
 ```
-STRIPE_SECRET_KEY=sk_live_xxx
+STRIPE_SECRET_KEY=sk_live_REDACTED
 ```
 
 ### How to Fix

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔥 Your Perfect JME FIT Program is Ready!</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      line-height: 1.6;
+      color: #1a1a1a;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    
+    .email-container { 
+      max-width: 600px; 
+      margin: 40px auto; 
+      background: #ffffff; 
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    
+    .header { 
+      background: #ffffff; 
+      padding: 50px 30px; 
+      text-align: center; 
+      color: #1a1a1a;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid transparent;
+      border-image: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%) 1;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 70%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    .logo-img { 
+      height: 80px;
+      width: auto;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .tagline { 
+      font-size: 18px; 
+      font-weight: 500; 
+      margin: 0;
+      color: #6b7280;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .content { 
+      padding: 50px 40px; 
+      background: #ffffff;
+    }
+    
+    .greeting { 
+      font-size: 28px; 
+      font-weight: 700; 
+      margin-bottom: 25px; 
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    
+    .urgency-banner {
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 30px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    
+    .urgency-text {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .hero-offer {
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 16px;
+      margin: 35px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero-offer::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 6s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .offer-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 15px;
+      position: relative;
+      z-index: 1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .offer-subtitle {
+      font-size: 20px;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    
+    .offer-details {
+      font-size: 16px;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .main-text { 
+      font-size: 16px; 
+      margin-bottom: 24px; 
+      color: #4a4a4a;
+      line-height: 1.7;
+    }
+    
+    .main-text strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    
+    .benefits-section {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 35px;
+      margin: 35px 0;
+      border-left: 6px solid #8B5CF6;
+    }
+    
+    .benefits-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #8B5CF6;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .benefit-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+    }
+    
+    .benefit-icon {
+      background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 14px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    
+    .benefit-content {
+      flex: 1;
+    }
+    
+    .benefit-title {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .benefit-description {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .social-proof {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      padding: 30px;
+      margin: 30px 0;
+      border: 2px solid #22D3EE;
+      text-align: center;
+    }
+    
+    .proof-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0891b2;
+      margin-bottom: 20px;
+    }
+    
+    .testimonial {
+      font-style: italic;
+      color: #0e7490;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    
+    .testimonial-author {
+      font-weight: 600;
+      color: #0891b2;
+      font-size: 14px;
+    }
+    
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      margin: 25px 0;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 28px;
+      font-weight: 800;
+      color: #22D3EE;
+      display: block;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .cta-section {
+      text-align: center;
+      margin: 40px 0;
+      padding: 40px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      border: 3px solid #22D3EE;
+    }
+    
+    .cta-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+    
+    .cta-subtitle {
+      font-size: 16px;
+      color: #6b7280;
+      margin-bottom: 25px;
+    }
+    
+    .cta-button { 
+      display: inline-block; 
+      background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%); 
+      color: white !important; 
+      padding: 22px 45px; 
+      border-radius: 50px; 
+      text-decoration: none; 
+      font-weight: 800; 
+      font-size: 20px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 20px 40px rgba(139, 92, 246, 0.5);
+      transition: all 0.3s ease;
+      text-align: center;
+      margin: 18px 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      min-width: 250px;
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 50px rgba(139, 92, 246, 0.6);
+      text-decoration: none;
+    }
+    
+    .secondary-cta {
+      background: transparent;
+      color: #8B5CF6 !important;
+      border: 2px solid #8B5CF6;
+      box-shadow: none;
+    }
+    
+    .secondary-cta:hover {
+      background: #8B5CF6;
+      color: white !important;
+    }
+    
+    .guarantee-box {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    
+    .guarantee-icon {
+      font-size: 32px;
+      margin-bottom: 15px;
+    }
+    
+    .guarantee-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 10px;
+    }
+    
+    .guarantee-text {
+      color: #92400e;
+      font-size: 14px;
+    }
+    
+    .scarcity-timer {
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    
+    .timer-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .timer-text {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .footer { 
+      background: linear-gradient(135deg, #1f2937 0%, #374151 100%); 
+      padding: 40px 30px; 
+      text-align: center; 
+      color: white;
+    }
+    
+    .footer-brand {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #8B5CF6, #22D3EE);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .footer-tagline {
+      opacity: 0.8;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .footer-links {
+      margin: 20px 0;
+    }
+    
+    .footer-link {
+      color: #a5b4fc;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 13px;
+    }
+    
+    .footer-link:hover {
+      color: white;
+    }
+    
+    .footer-text {
+      color: #9ca3af; 
+      font-size: 12px;
+      margin: 5px 0;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        margin: 20px 10px !important;
+        border-radius: 16px !important;
+      }
+      
+      .content {
+        padding: 30px 25px !important;
+      }
+      
+      .header {
+        padding: 40px 25px !important;
+      }
+      
+      .header-title {
+        font-size: 26px !important;
+      }
+      
+      .greeting {
+        font-size: 24px !important;
+      }
+      
+      .benefits-section {
+        padding: 25px !important;
+      }
+      
+      .benefit-item {
+        padding: 15px !important;
+      }
+      
+      .cta-button {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 10px 0 !important;
+      }
+      
+      .stats-row {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="JME FIT Logo" class="logo-img">
+      <div class="header-title">Your Perfect Program Awaits!</div>
+      <div class="tagline">Transform Your Body in Record Time</div>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">Hey {{clientName}}!</div>
+      
+      <div class="urgency-banner">
+        <div class="urgency-text">⚡ LIMITED TIME: Special pricing expires in 24 hours!</div>
+      </div>
+      
+      <div class="main-text">
+        I noticed you've been exploring our transformation programs, and I have <strong>exciting news</strong> for you! Based on your interest, I've identified the <strong>perfect program</strong> that will get you the results you're looking for.
+      </div>
+      
+      <div class="hero-offer">
+        <div class="offer-title">🎯 Your Perfect Match</div>
+        <div class="offer-subtitle">Complete Nutrition & Training Program</div>
+        <div class="offer-details">Everything you need for total body transformation - custom nutrition + workouts + 24/7 support</div>
+      </div>
+      
+      <div class="main-text">
+        Here's why this program is <strong>perfect for you</strong>:
+      </div>
+      
+      <div class="benefits-section">
+        <div class="benefits-title">🚀 What Makes This Program Special:</div>
+        
+        <div class="benefit-item">
+          <div class="benefit-icon">🎯</div>
+          <div class="benefit-content">
+            <div class="benefit-title">Personalized Just for YOU</div>
+            <div class="benefit-description">
+              Custom macros, meal plans, and workouts designed specifically for your body, goals, and lifestyle
+            </div>
+          </div>
+        </div>
+        
+        <div class="benefit-item">
+          <div class="benefit-icon">📱</div>
+          <div class="benefit-content">
+            <div class="benefit-title">24/7 Direct Access to Jaime</div>
+            <div class="benefit-description">
+              Get answers, motivation, and adjustments whenever you need them through our exclusive app
+            </div>
+          </div>
+        </div>
+        
+        <div class="benefit-item">
+          <div class="benefit-icon">⚡</div>
+          <div class="benefit-content">
+            <div class="benefit-title">Proven Results System</div>
+            <div class="benefit-description">
+              The same system that's helped hundreds of clients lose fat, build muscle, and transform their lives
+            </div>
+          </div>
+        </div>
+        
+        <div class="benefit-item">
+          <div class="benefit-icon">🏆</div>
+          <div class="benefit-content">
+            <div class="benefit-title">Complete Support System</div>
+            <div class="benefit-description">
+              Private community, weekly check-ins, progress tracking, and everything you need to succeed
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="social-proof">
+        <div class="proof-title">🌟 Real Results from Real People</div>
+        
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">Success Stories</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">15-30</span>
+            <span class="stat-label">Lbs Lost Avg</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">6</span>
+            <span class="stat-label">Weeks to Results</span>
+          </div>
+        </div>
+        
+        <div class="testimonial">
+          "I lost 22 pounds and gained so much confidence! Jaime's program changed my entire relationship with food and fitness."
+        </div>
+        <div class="testimonial-author">- Sarah M., Program Graduate</div>
+      </div>
+      
+      <div class="scarcity-timer">
+        <div class="timer-title">⏰ Special Launch Pricing Ends Soon!</div>
+        <div class="timer-text">Lock in your transformation at the lowest price ever - this offer expires in 24 hours</div>
+      </div>
+      
+      <div class="guarantee-box">
+        <div class="guarantee-icon">🛡️</div>
+        <div class="guarantee-title">100% Money-Back Guarantee</div>
+        <div class="guarantee-text">
+          Not completely satisfied? Get a full refund within 30 days. I'm that confident this program will work for you.
+        </div>
+      </div>
+      
+      <div class="cta-section">
+        <div class="cta-title">Ready to Transform?</div>
+        <div class="cta-subtitle">Join hundreds of successful clients and start your journey today</div>
+        
+        <a href="https://jmefit.com/programs" class="cta-button">
+          🔥 Start My Transformation
+        </a>
+        
+        <a href="https://jmefit.com/contact" class="cta-button secondary-cta">
+          💬 Ask Jaime Questions
+        </a>
+      </div>
+      
+      <div class="main-text">
+        <strong>{{clientName}}</strong>, you've already taken the first step by showing interest in changing your life. Don't let this opportunity slip away - your future self will thank you for taking action today.
+      </div>
+      
+      <div class="main-text">
+        I'm here to support you every step of the way. Let's make this transformation happen together! 💪
+      </div>
+      
+      <div class="main-text">
+        <strong>Ready to change your life,</strong><br>
+        Jaime & The JME FIT Team
+      </div>
+      
+      <div class="main-text" style="font-size: 12px; color: #9ca3af; text-align: center; margin-top: 40px;">
+        P.S. Remember, this special pricing is only available for 24 hours. Don't miss out on the best investment you'll ever make in yourself!
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div class="footer-brand">JME FIT Online Training</div>
+      <div class="footer-tagline">Transform Mind & Body, Elevate Life</div>
+      <div class="footer-links">
+        <a href="https://jmefit.com" class="footer-link">Website</a>
+        <a href="https://instagram.com/jmefit_" class="footer-link">Instagram</a>
+        <a href="{{privacyUrl}}" class="footer-link">Privacy Policy</a>
+        <a href="{{unsubscribeUrl}}" class="footer-link">Unsubscribe</a>
+      </div>
+      <div class="footer-text">
+        Join thousands following the transformation journey!
+      </div>
+    </div>
+  </div>
+</body>
+</html> 

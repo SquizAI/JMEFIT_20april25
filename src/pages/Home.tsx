@@ -166,10 +166,13 @@ function Home() {
       </div>
       
       {/* Journey Banner */}
-      <div className="relative py-40 parallax-banner"
+      <div
+        className="relative py-40 parallax-banner"
         style={{
           backgroundImage: 'url("/unsplash-images/fitness-journey.jpg")'
         }}
+        role="img"
+        aria-label="Inspiring fitness journey background showing athlete training with determination"
       >
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative max-w-4xl mx-auto px-4 text-center">
@@ -199,17 +202,17 @@ function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <img
               src="/IMG_3190.PNG"
-              alt="Workout tracking"
+              alt="JMEFit mobile app showing daily workout tracking interface with exercise library and progress logging"
               className="rounded-2xl shadow-2xl transform hover:scale-105 transition-all"
             />
             <img
               src="/IMG_3186.PNG"
-              alt="Progress tracking"
+              alt="JMEFit app progress dashboard displaying body measurements, weight tracking graphs, and transformation photos"
               className="rounded-2xl shadow-2xl transform hover:scale-105 transition-all"
             />
             <img
               src="/IMG_3185.PNG"
-              alt="Nutrition tracking"
+              alt="JMEFit nutrition tracker showing macro breakdown, daily meal log, and calorie counting features"
               className="rounded-2xl shadow-2xl transform hover:scale-105 transition-all"
             />
           </div>

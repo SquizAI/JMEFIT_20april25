@@ -1,56 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { EMAIL_TEMPLATES, EmailTemplateConfig, getTemplatesByCategory } from '../../../lib/email-templates';
+import React, { useState } from 'react';
+import { emailTemplates, getEmailTemplatesList, getTemplatesByCategory, EmailTemplate } from '../../../lib/email-templates';
 import { Mail, Tag, Eye, Copy, Edit } from 'lucide-react';
 
 interface TemplateGalleryProps {
-  onSelectTemplate: (template: EmailTemplateConfig, htmlContent: string) => void;
+  onSelectTemplate: (template: EmailTemplate, htmlContent: string) => void;
   onClose: () => void;
 }
 
 function TemplateGallery({ onSelectTemplate, onClose }: TemplateGalleryProps) {
-  const [selectedCategory, setSelectedCategory] = useState<'all' | EmailTemplateConfig['category']>('all');
-  const [previewTemplate, setPreviewTemplate] = useState<EmailTemplateConfig | null>(null);
-  const [previewHtml, setPreviewHtml] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | EmailTemplate['category']>('all');
+  const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const categories: Array<{ value: 'all' | EmailTemplateConfig['category']; label: string; color: string }> = [
+  const categories: Array<{ value: 'all' | EmailTemplate['category']; label: string; color: string }> = [
     { value: 'all', label: 'All Templates', color: 'bg-gray-100 text-gray-800' },
     { value: 'transactional', label: 'Transactional', color: 'bg-blue-100 text-blue-800' },
     { value: 'marketing', label: 'Marketing', color: 'bg-green-100 text-green-800' },
-    { value: 'notification', label: 'Notifications', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'lead-nurture', label: 'Lead Nurture', color: 'bg-purple-100 text-purple-800' }
+    { value: 'program', label: 'Program', color: 'bg-purple-100 text-purple-800' },
+    { value: 'notification', label: 'Notifications', color: 'bg-yellow-100 text-yellow-800' }
   ];
 
   const filteredTemplates = selectedCategory === 'all' 
-    ? EMAIL_TEMPLATES 
+    ? getEmailTemplatesList()
     : getTemplatesByCategory(selectedCategory);
 
-  const loadTemplateHtml = async (template: EmailTemplateConfig) => {
-    setLoading(true);
-    try {
-      const response = await fetch(template.htmlFile);
-      const html = await response.text();
-      return html;
-    } catch (error) {
-      console.error('Error loading template:', error);
-      return '<p>Error loading template</p>';
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePreview = async (template: EmailTemplateConfig) => {
-    const html = await loadTemplateHtml(template);
-    setPreviewHtml(html);
+  const handlePreview = (template: EmailTemplate) => {
     setPreviewTemplate(template);
   };
 
-  const handleSelect = async (template: EmailTemplateConfig) => {
-    const html = await loadTemplateHtml(template);
-    onSelectTemplate(template, html);
+  const handleSelect = (template: EmailTemplate) => {
+    onSelectTemplate(template, template.html);
   };
 
-  const getCategoryColor = (category: EmailTemplateConfig['category']) => {
+  const getCategoryColor = (category: EmailTemplate['category']) => {
     const cat = categories.find(c => c.value === category);
     return cat?.color || 'bg-gray-100 text-gray-800';
   };
@@ -110,15 +92,6 @@ function TemplateGallery({ onSelectTemplate, onClose }: TemplateGalleryProps) {
                   
                   <p className="text-sm text-gray-600 mb-3">{template.description}</p>
                   
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {template.tags.map(tag => (
-                      <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-xs rounded">
-                        <Tag className="w-3 h-3" />
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  
                   <div className="text-xs text-gray-500 mb-3">
                     <strong>Variables:</strong> {template.variables.join(', ')}
                   </div>
@@ -161,7 +134,6 @@ function TemplateGallery({ onSelectTemplate, onClose }: TemplateGalleryProps) {
                 <button
                   onClick={() => {
                     setPreviewTemplate(null);
-                    setPreviewHtml('');
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
@@ -178,7 +150,7 @@ function TemplateGallery({ onSelectTemplate, onClose }: TemplateGalleryProps) {
                 ) : (
                   <div 
                     className="email-preview"
-                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                    dangerouslySetInnerHTML={{ __html: previewTemplate.html }}
                   />
                 )}
               </div>
