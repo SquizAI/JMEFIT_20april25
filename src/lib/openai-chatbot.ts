@@ -9,11 +9,33 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Only for client-side usage
-});
+// Lazy initialization of OpenAI client - only create when needed
+let openaiClient: OpenAI | null = null;
+
+const getOpenAIClient = (): OpenAI | null => {
+  // Check if API key exists
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+
+  if (!apiKey || apiKey === '') {
+    console.warn('OpenAI API key not found - chatbot will use fallback responses');
+    return null;
+  }
+
+  // Only create client once
+  if (!openaiClient) {
+    try {
+      openaiClient = new OpenAI({
+        apiKey: apiKey,
+        dangerouslyAllowBrowser: true // Only for client-side usage
+      });
+    } catch (error) {
+      console.error('Failed to initialize OpenAI client:', error);
+      return null;
+    }
+  }
+
+  return openaiClient;
+};
 
 // Structured response schemas
 const ChatResponseSchema = z.object({
@@ -945,9 +967,9 @@ export const createChatSession = (): ChatSession => {
       programViews: [],
       lastInteractionTime: Date.now()
     },
-    endpoint: 'https://api.openai.com/v1/chat/completions',
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-    model: 'gpt-3.5-turbo' // Changed from o4-mini to gpt-3.5-turbo for better compatibility
+    endpoint: '/.netlify/functions/chatbot', // Use server-side Netlify function
+    apiKey: '', // Not needed for server-side calls
+    model: 'gpt-5-mini' // Use GPT-5 mini for cost efficiency
   };
 };
 
@@ -1069,70 +1091,52 @@ export const sendMessage = async (session: ChatSession, message: string): Promis
           return getFallbackResponse(message);
         }
         
-        // In production or if API key is available, make the real API call
-        const openai = new OpenAI({
-          apiKey: session.apiKey,
-          dangerouslyAllowBrowser: true
-        });
-        
+        // Make server-side API call via Netlify function
         try {
-    const completion = await openai.chat.completions.create({
-            model: session.model || 'gpt-3.5-turbo',
-            messages: formattedMessages,
-            max_completion_tokens: 1500,
-            temperature: 0.7,
-            presence_penalty: 0.6,
-            response_format: { type: 'json_object' }
+          const response = await fetch('/.netlify/functions/chatbot', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messages: formattedMessages,
+              model: session.model || 'gpt-5-mini',
+              temperature: 0.7,
+              max_tokens: 1500
+            })
           });
-          
+
           // Clear the timeout to prevent memory leaks
           clearTimeout(timeout);
-          
-          // Extract the response content
-          const responseContent = completion.choices[0].message.content;
-    if (!responseContent) {
-            console.warn('Empty response from OpenAI');
-            return getFallbackResponse(message);
-          }
-          
-          // Process the response
-          return processResponse(responseContent, message);
-        } catch (jsonFormatError) {
-          // Clear the timeout to prevent memory leaks
-          clearTimeout(timeout);
-          
-          // If we get a JSON format error, try again without the response_format parameter
-          if (jsonFormatError && typeof jsonFormatError === 'object' && 'message' in jsonFormatError && 
-              typeof jsonFormatError.message === 'string' && 
-              (jsonFormatError.message.includes('json') || jsonFormatError.message.includes('response_format'))) {
-            
-            console.warn('JSON format error, retrying without structured response format');
-            
-            try {
-              // Retry without response_format
-              const retryCompletion = await openai.chat.completions.create({
-                model: session.model || 'gpt-3.5-turbo',
-                messages: formattedMessages,
-                max_completion_tokens: 1500,
-                temperature: 0.7,
-                presence_penalty: 0.6
-              });
-              
-              const retryContent = retryCompletion.choices[0].message.content;
-              if (!retryContent) {
-                return getFallbackResponse(message);
-              }
-              
-              return processResponse(retryContent, message);
-            } catch (retryError) {
-              console.error('Retry failed:', retryError);
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.warn('Chatbot API error:', errorData);
+
+            // If server suggests using fallback, do so
+            if (errorData.useFallback) {
               return getFallbackResponse(message);
             }
+
+            throw new Error(errorData.error || 'API request failed');
           }
-          
-          // For other API errors, log and rethrow
-          console.error('API error:', jsonFormatError);
-          throw jsonFormatError;
+
+          const data = await response.json();
+
+          if (!data.success || !data.response) {
+            console.warn('Invalid response from chatbot API');
+            return getFallbackResponse(message);
+          }
+
+          // Process the response
+          return processResponse(data.response, message);
+
+        } catch (fetchError) {
+          // Clear the timeout to prevent memory leaks
+          clearTimeout(timeout);
+
+          console.error('Error calling chatbot API:', fetchError);
+          return getFallbackResponse(message);
         }
       } catch (error) {
         console.error(`API attempt ${retryCount + 1} failed:`, error);
