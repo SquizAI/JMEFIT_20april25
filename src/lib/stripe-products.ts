@@ -218,4 +218,86 @@ export const formatPrice = (amount: number, currency: string = 'USD'): string =>
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount / 100); // Convert cents to dollars
+};
+
+/**
+ * Validate that a price ID exists and is in the correct format
+ * Stripe price IDs start with 'price_'
+ */
+export const validatePriceId = (priceId: string): { valid: boolean; error?: string } => {
+  if (!priceId) {
+    return { valid: false, error: 'Price ID is required' };
+  }
+
+  if (typeof priceId !== 'string') {
+    return { valid: false, error: 'Price ID must be a string' };
+  }
+
+  if (!priceId.startsWith('price_')) {
+    return { valid: false, error: 'Invalid price ID format. Must start with "price_"' };
+  }
+
+  if (priceId.length < 20) {
+    return { valid: false, error: 'Price ID is too short to be valid' };
+  }
+
+  return { valid: true };
+};
+
+/**
+ * Get a validated price ID for a product and interval
+ * Throws an error if the price ID is invalid
+ */
+export const getValidatedPriceId = (productKey: string, interval?: string): string => {
+  const priceId = getPriceId(productKey, interval);
+
+  const validation = validatePriceId(priceId);
+  if (!validation.valid) {
+    throw new Error(`Invalid price ID for product "${productKey}" with interval "${interval}": ${validation.error}`);
+  }
+
+  return priceId;
+};
+
+/**
+ * Validate all price IDs in the product catalog
+ * Returns a list of any invalid price IDs
+ */
+export const validateAllPriceIds = (): { productKey: string; interval: string; error: string }[] => {
+  const errors: { productKey: string; interval: string; error: string }[] = [];
+
+  Object.entries(STRIPE_PRODUCTS).forEach(([productKey, product]) => {
+    if ('one_time' in product.prices) {
+      const validation = validatePriceId(product.prices.one_time.id);
+      if (!validation.valid) {
+        errors.push({
+          productKey,
+          interval: 'one_time',
+          error: validation.error || 'Unknown error'
+        });
+      }
+    } else {
+      // Validate monthly price
+      const monthValidation = validatePriceId((product.prices as SubscriptionPrices).month.id);
+      if (!monthValidation.valid) {
+        errors.push({
+          productKey,
+          interval: 'month',
+          error: monthValidation.error || 'Unknown error'
+        });
+      }
+
+      // Validate yearly price
+      const yearValidation = validatePriceId((product.prices as SubscriptionPrices).year.id);
+      if (!yearValidation.valid) {
+        errors.push({
+          productKey,
+          interval: 'year',
+          error: yearValidation.error || 'Unknown error'
+        });
+      }
+    }
+  });
+
+  return errors;
 }; 

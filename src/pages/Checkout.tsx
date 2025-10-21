@@ -113,17 +113,6 @@ function Checkout() {
         }
       });
       console.log('Cart has items:', items.length);
-    } else {
-      console.log('Cart is empty, adding a test item for debugging');
-      // Add a test item to the cart for debugging purposes
-      const testItem = {
-        id: 'test-item-' + Date.now(),
-        name: 'Test Product One-Time',
-        price: 10,
-        description: 'Test product for debugging checkout flow',
-        billingInterval: 'one-time' as 'month' | 'year' | 'one-time'
-      };
-      useCartStore.getState().addItem(testItem);
     }
   }, []);  // Empty dependency array to run only once on mount
   const { user } = useAuth();
@@ -258,39 +247,12 @@ function Checkout() {
     setLoading(true);
     setError(null);
     
-    // Debug logging to understand cart state
-    console.log('Cart items at checkout:', items);
-    console.log('Cart store state:', useCartStore.getState());
-    
+    // Validate cart is not empty before proceeding
+    if (!items || items.length === 0) {
+      throw new Error('Your cart is empty. Please add items before checking out.');
+    }
+
     try {
-      // Check if cart is empty and add a test item if needed
-      if (!items || items.length === 0) {
-        console.log('Cart is empty, adding a test item before checkout');
-        // Create a test item
-        const testItem = {
-          id: 'test-item-' + Date.now(),
-          name: 'Test Product One-Time',
-          price: 10,
-          description: 'Test product for debugging checkout flow',
-          billingInterval: 'one-time' as 'month' | 'year' | 'one-time'
-        };
-        
-        // Add the test item to the cart
-        useCartStore.getState().addItem(testItem);
-        
-        // Wait a moment for the state to update
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Get the updated items from the store
-        const updatedItems = useCartStore.getState().items;
-        console.log('Updated cart after adding test item:', updatedItems);
-        
-        // If still empty, show a more helpful error
-        if (!updatedItems || updatedItems.length === 0) {
-          console.error('Cart still empty after adding test item');
-          throw new Error('Unable to add items to cart. Please try refreshing the page or contact support.');
-        }
-      }
       
       // Get the user's email - either from their account, the form, or guest email
       const customerEmail = user?.email || 
